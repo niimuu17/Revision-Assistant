@@ -2388,34 +2388,6 @@ public class HelloController {
         return btn;
     }
 
-    /**
-     * Smart image or screenshot handler: checks clipboard first, otherwise prompts file upload.
-     */
-    private void handleSmartImageOrScreenshot() {
-        if (currentPage == null || currentNotebook == null) return;
-        Clipboard clipboard = Clipboard.getSystemClipboard();
-        if (clipboard.hasImage()) {
-            try {
-                Image fxImage = clipboard.getImage();
-                File targetFile = saveClipboardImageToFile(fxImage);
-                if (targetFile != null) {
-                    PageBlock newBlock = new PageBlock(PageBlock.TYPE_IMAGE, targetFile.getAbsolutePath(), "");
-                    currentPageBlocks.add(newBlock);
-                    currentPageBlocks.add(new PageBlock(PageBlock.TYPE_TEXT, "", ""));
-                    saveCurrentPageBlocks();
-                    targetFocusBlockIndex = currentPageBlocks.size() - 1;
-                    refreshBlocksView();
-                    if (workspaceStatusLabel != null) {
-                        workspaceStatusLabel.setText("Screenshot inserted ✓");
-                    }
-                    return;
-                }
-            } catch (Exception ex) {
-                ex.printStackTrace();
-            }
-        }
-        promptUploadImage();
-    }
 
     /**
      * Intercepts Ctrl+V in text areas to seamlessly paste clipboard screenshots inline.
@@ -2503,7 +2475,7 @@ public class HelloController {
         saveBadge.setStyle("-fx-font-size: 11px; -fx-text-fill: #10b981; -fx-background-color: #ecfdf5; -fx-padding: 2px 8px; -fx-background-radius: 10px;");
 
         // Just one clean +Image button
-        Button addImageBtn = createUnboxedButton("🖼 + Image", this::handleSmartImageOrScreenshot);
+        Button addImageBtn = createUnboxedButton("🖼 + Image", this::promptUploadImage);
 
         topRow.getChildren().addAll(pageTitleField, saveBadge, addImageBtn);
 
@@ -2938,8 +2910,17 @@ public class HelloController {
 
             PageBlock newBlock = new PageBlock(PageBlock.TYPE_IMAGE, targetFile.getAbsolutePath(), selected.getName());
             currentPageBlocks.add(newBlock);
+
+            // Automatically append text block underneath and focus it (return to text mode)
+            PageBlock nextTextBlock = new PageBlock(PageBlock.TYPE_TEXT, "", "");
+            currentPageBlocks.add(nextTextBlock);
+
             saveCurrentPageBlocks();
+            targetFocusBlockIndex = currentPageBlocks.size() - 1;
             refreshBlocksView();
+            if (workspaceStatusLabel != null) {
+                workspaceStatusLabel.setText("Image inserted ✓");
+            }
         } catch (Exception ex) {
             ex.printStackTrace();
             showError("Image Error", "Failed to insert image: " + ex.getMessage());
@@ -2960,7 +2941,13 @@ public class HelloController {
             if (targetFile != null) {
                 PageBlock newBlock = new PageBlock(PageBlock.TYPE_IMAGE, targetFile.getAbsolutePath(), "Screenshot " + LocalTime.now().format(DateTimeFormatter.ofPattern("HH:mm")));
                 currentPageBlocks.add(newBlock);
+
+                // Automatically append text block underneath and focus it (return to text mode)
+                PageBlock nextTextBlock = new PageBlock(PageBlock.TYPE_TEXT, "", "");
+                currentPageBlocks.add(nextTextBlock);
+
                 saveCurrentPageBlocks();
+                targetFocusBlockIndex = currentPageBlocks.size() - 1;
                 refreshBlocksView();
                 if (workspaceStatusLabel != null) {
                     workspaceStatusLabel.setText("Screenshot pasted ✓");
