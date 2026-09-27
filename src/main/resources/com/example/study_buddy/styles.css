@@ -312,30 +312,30 @@
 }
 
 .block-code-container {
-    -fx-background-color: #0f172a;
+    -fx-background-color: #ffffff;
     -fx-background-radius: 8px;
-    -fx-border-color: #334155;
+    -fx-border-color: #e2e8f0;
     -fx-border-radius: 8px;
     -fx-border-width: 1px;
-    -fx-padding: 10px 12px;
-    -fx-effect: dropshadow(three-pass-box, rgba(15, 23, 42, 0.08), 8, 0, 0, 2);
+    -fx-padding: 10px 14px;
+    -fx-effect: dropshadow(three-pass-box, rgba(15, 23, 42, 0.03), 6, 0, 0, 1);
 }
 
 .code-text-area {
     -fx-font-family: "Consolas", "Courier New", monospace;
     -fx-font-size: 13px;
-    -fx-text-fill: #f8fafc;
-    -fx-highlight-fill: #3b82f6;
-    -fx-highlight-text-fill: #ffffff;
+    -fx-text-fill: #1e293b;
+    -fx-highlight-fill: #e0e7ff;
+    -fx-highlight-text-fill: #312e81;
 }
 
 .code-text-area .content {
-    -fx-background-color: #0f172a;
+    -fx-background-color: #ffffff;
 }
 
 .btn-copy-code {
-    -fx-background-color: #334155;
-    -fx-text-fill: #e2e8f0;
+    -fx-background-color: #f1f5f9;
+    -fx-text-fill: #334155;
     -fx-font-size: 11px;
     -fx-font-weight: bold;
     -fx-background-radius: 6px;
@@ -344,8 +344,8 @@
 }
 
 .btn-copy-code:hover {
-    -fx-background-color: #475569;
-    -fx-text-fill: #ffffff;
+    -fx-background-color: #e2e8f0;
+    -fx-text-fill: #1e293b;
 }
 
 .btn-playground-add {
@@ -432,21 +432,37 @@
     -fx-padding: 2px 0 6px 0;
 }
 
-.doc-text-area {
+.doc-text-area,
+.doc-text-area:focused {
     -fx-background-color: transparent;
     -fx-background-insets: 0;
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+    -fx-box-border: transparent;
     -fx-font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
     -fx-font-size: 14px;
     -fx-text-fill: #1e293b;
     -fx-line-spacing: 3px;
-    -fx-focus-color: transparent;
-    -fx-faint-focus-color: transparent;
+    -fx-padding: 0;
 }
 
-.doc-text-area .content {
+.doc-text-area .content,
+.doc-text-area:focused .content {
     -fx-background-color: transparent;
     -fx-background-insets: 0;
-    -fx-padding: 4px 2px;
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
+    -fx-padding: 2px 0;
+}
+
+.doc-text-area .scroll-pane,
+.doc-text-area:focused .scroll-pane {
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
 }
 
 .doc-hover-bar {

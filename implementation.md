@@ -1,130 +1,131 @@
-# Implementation Plan: Unified "Plain Window" Notebook Document Layout
+# Implementation Plan: Complete Migration from `styles.css` to Pure JavaFX & Plain-Page Notebook
 
-> **User Feedback**:  
-> *"In notebook, I want a plain window. Now notes, code snippet, screenshot, picture are saving in their separate portion, so it seems less organized. Give me an implementation plan of more organized layout."*
->
-> **Core Objective**:  
-> Transform the notebook workspace from a fragmented series of disconnected card boxes into a **clean, unified, and organized "Plain Window" Document Canvas** (similar to Notion, Apple Notes, OneNote, and GitHub markdown).
+## 1. Executive Summary & Objective
 
----
-
-## 1. Problem Analysis & UX Transformation
-
-| Current Experience (Fragmented Cards) | Proposed Experience (Unified Plain Window) |
-|---|---|
-| **Separated Portions**: Every note, code snippet, and screenshot is wrapped in a heavy bordered box (`.block-card`) with redundant headers (`📝 Note`, `🖼 Image`). | **Seamless Document Canvas**: A clean, distraction-free white document workspace (`#ffffff`) where notes, code snippets, and pictures flow naturally as one unified page. |
-| **Awkward Bottom Insertion Bar**: Buttons to add notes, code, or images are placed at the bottom, far below the content. | **Top Sticky Action Toolbar**: A modern document formatting bar at the top with quick one-click insertion tools. |
-| **Visual Clutter**: Every block has permanent delete buttons, borders, and separate scrollable text areas. | **Clean Inline Embeds with Hover Controls**: Clean typography with seamless auto-resizing text; code snippets and images display as sleek embedded elements with subtle controls appearing on hover. |
-| **No Organization Filtering**: All types are mixed in one long stack. | **Organized View Tabs**: `[ 📄 All ]  [ 📝 Notes ]  [ 💻 Code ]  [ 🖼 Media ]` allowing the user to view the complete document flow or instantly filter by content type. |
+The user requested:
+1. **Complete Removal of `styles.css`**: Remove all CSS stylesheets from the application and replace all styling across the entire project (Login, Main Menu / Dashboard, Courses, Quizzes, Calendar, Tasks, Notebook) with **pure JavaFX code**.
+2. **Implementation of Plain-Page Notebook Layout**:
+   - 4 unboxed buttons at top right (`+ Text`, `+ Code`, `+ Image`, `+ Screenshot`).
+   - Single plain white continuous page below.
+   - Default borderless text writing mode.
+   - Simple white code box with faint/less visible border (`#e2e8f0`), monospace text, and top `✏️ Edit`, `📋 Copy`, `🗑️ Remove` options.
+   - Frameless inline images and pasted screenshots with zero outer border/card wrapping, and top `✏️ Edit`, `🔍 Open Full`, `🗑️ Remove` options.
 
 ---
 
-## 2. Layout & Visual Mockup
+## 2. Architecture: Centralized JavaFX Styling Engine (`UITheme.java`)
+
+To ensure clean, maintainable, and robust styling without duplicating style strings across controllers, we will create a dedicated JavaFX styling engine:
+`com.example.study_buddy.UITheme`
+
+### Why `UITheme.java`?
+- **Zero CSS Files**: Eliminates external `.css` files and class-lookup overhead.
+- **Type-Safe Design Tokens**: Centralizes all colors, fonts, insets, borders, and shadows as strongly-typed Java constants:
+  - `PRIMARY_COLOR = "#4f46e5"`
+  - `BORDER_COLOR = "#e2e8f0"`
+  - `TEXT_DARK = "#1e293b"`
+  - `BG_CANVAS = "#ffffff"`
+  - `BG_MUTED = "#f8fafc"`
+- **Programmatic State Handling**: Attaches hover, focus, and press effects dynamically using JavaFX properties (`node.hoverProperty()`, `node.focusedProperty()`, `node.pressedProperty()`).
 
 ```
-+-------------------------------------------------------------------------------------------------------+
-| ◀ Back to Notebooks   |  📂 Topics   |   📘 Data Structures › 📂 Trees › 📄 Binary Search Trees     |
-+-------------------------------------------------------------------------------------------------------+
-|                                                                                                       |
-|  DOCUMENT CANVAS (Plain Window)                                                                       |
-|  +-------------------------------------------------------------------------------------------------+  |
-|  | [ + Add Text ]  [ + Code Snippet ]  [ + Image ]  [ 📷 Paste Screenshot (Ctrl+V) ]               |  |
-|  | Filter View: (•) All Document   ( ) Notes Only   ( ) Code Only   ( ) Media Only                 |  |
-|  +-------------------------------------------------------------------------------------------------+  |
-|                                                                                                       |
-|  Binary Search Trees - Implementation & Traversal                                      [ Saved ✓ ]   |
-|  Last edited: Today at 16:15                                                                          |
-|  ---------------------------------------------------------------------------------------------------  |
-|                                                                                                       |
-|  A Binary Search Tree (BST) is a node-based binary tree data structure with the following            |
-|  properties: The left subtree of a node contains only nodes with keys lesser than the node’s key,     |
-|  and the right subtree contains only nodes with keys greater than the node’s key.                     |
-|                                                                                                       |
-|  +---[ Java: BST Node Definition ]--------------------------------------------------[ 📋 Copy Code ]+  |
-|  | class Node {                                                                                     |  |
-|  |     int key;                                                                                     |  |
-|  |     Node left, right;                                                                            |  |
-|  |     public Node(int item) { key = item; left = right = null; }                                   |  |
-|  | }                                                                                                |  |
-|  +--------------------------------------------------------------------------------------------------+  |
-|                                                                                                       |
-|  Here is the visualization diagram for standard in-order traversal:                                  |
-|                                                                                                       |
-|  [                     🖼 BST Traversal Diagram (Click to Zoom)                                    ]  |
-|                        Caption: In-order traversal visits nodes in ascending sorted order             |
-|                                                                                                       |
-|  When implementing the delete operation, we have three cases to consider:                            |
-|  1. Node to be deleted is a leaf.                                                                     |
-|  2. Node to be deleted has only one child.                                                            |
-|  3. Node to be deleted has two children (find in-order successor).                                    |
-|                                                                                                       |
-+-------------------------------------------------------------------------------------------------------+
++-----------------------------------------------------------------------------------+
+|                              UITheme.java (Pure JavaFX)                          |
++-----------------------------------------------------------------------------------+
+|  [Design Tokens]                                                                  |
+|   • Colors: PRIMARY (#4f46e5), BORDER (#e2e8f0), MUTED_TEXT (#64748b)            |
+|   • Fonts: Segoe UI, Consolas Monospace                                           |
+|   • Shadows: DropShadow three-pass blur                                           |
++-----------------------------------------------------------------------------------+
+|  [Component Stylers]                                                              |
+|   • applyPrimaryButton(Button)         • applyToggleButton(Button)                |
+|   • applySecondaryButton(Button)       • applyLogoutButton(Button)                |
+|   • applyNavItem(Button, boolean)      • applyTextInput(TextInputControl)         |
+|   • applyCourseCard(VBox)              • applyNotebookCard(VBox)                  |
+|   • applyQuizCard(VBox)                • applyMcqOption(VBox, boolean selected)   |
+|   • applyCalendarCell(VBox, boolean)   • makeBorderlessTextArea(TextArea)         |
+|   • applyCodeContainer(VBox)           • applyTopActionButton(Button)             |
++-----------------------------------------------------------------------------------+
 ```
 
 ---
 
-## 3. Technical Implementation Details
+## 3. Mapping: CSS Selectors to JavaFX Programmatic Methods
 
-### A. Seamless Document Canvas Architecture
-In `HelloController.java` (`renderPageCanvas(Page page)`):
-1. **Document Wrapper**:
-   - Host the canvas inside a clean, centered document sheet with responsive max-width (e.g. 840px–900px, like a real document) or full-width with generous padding (32px).
-   - Background is clean white (`#ffffff`), border-radius 10px, subtle shadow, mimicking a clean digital notepad.
+Every class in `styles.css` maps directly to a clean JavaFX method in `UITheme`:
 
-2. **Top Document Action & Filter Bar**:
-   - Relocate insertion buttons from the bottom to the top header right beneath the page title:
-     - `📝 + Text`
-     - `💻 + Code`
-     - `🖼 + Image`
-     - `📷 Paste Screenshot (Ctrl+V)`
-   - Add filter toggle chips:
-     - `📄 All` (shows full continuous document)
-     - `📝 Notes` (shows only text notes)
-     - `💻 Code` (shows only code snippets)
-     - `🖼 Media` (shows only screenshots and pictures)
-
-3. **Borderless Text Blocks**:
-   - Remove `.block-card` borders, headers, and backgrounds around text.
-   - Text areas render directly on the white canvas with transparent background and no focus borders.
-   - Dynamic height expansion: text expands naturally as lines are typed, without awkward internal scrollbars.
-
-4. **Embedded Code Snippets**:
-   - Sleek dark card (`#0f172a`), language pill dropdown (Java, Python, C++, etc.), and a 1-click `📋 Copy Code` button.
-   - Minimal action toolbar on hover (Move Up, Move Down, Delete).
-
-5. **Inline Media & Screenshots**:
-   - Centered with automatic aspect ratio scaling (`fitWidth = 720px`).
-   - Clean caption field underneath that looks like real document typography.
-   - Quick action bar on hover (Zoom, Open in Default App, Move, Delete).
-
-6. **Full Backward Compatibility**:
-   - Zero database schema changes required. Existing `PageBlock` JSON storage (`[{"type":"TEXT", ...}, {"type":"CODE", ...}, {"type":"IMAGE", ...}]`) works identically, ensuring all existing notes open with the new layout without data loss.
+| Original CSS Class in `styles.css` | `UITheme` Method in Pure JavaFX | Behavior & Interactions |
+|---|---|---|
+| `.root`, `.main-container` | `UITheme.applyBackground(Region)` | Subtle linear gradient background (`#f8fafc` to `#e2e8f0`). |
+| `.brand-panel`, `.brand-title`, `.brand-badge` | `UITheme.applyBrandPanel(...)` | Gradient background (`#312e81` to `#4f46e5`), bold labels. |
+| `.btn-primary` | `UITheme.applyPrimaryButton(Button)` | Indigo gradient, bold white text, hover & pressed animations. |
+| `.btn-toggle` | `UITheme.applyToggleButton(Button)` | Clean square toggle with hover highlight. |
+| `.btn-logout` | `UITheme.applyLogoutButton(Button)` | Soft red background (`#fee2e2`), bold red text, hover highlight. |
+| `.nav-item`, `.nav-item-active` | `UITheme.applyNavItem(Button, boolean)` | Transparent resting state, lavender highlight when active, hover feedback. |
+| `.text-input` | `UITheme.applyTextInput(TextInputControl)` | Rounded border, focus shadow & indigo border on focus. |
+| `.notebook-card`, `.course-card`, `.chapter-card` | `UITheme.applyCard(...)` | White card, rounded corners, subtle dropshadow, hover elevation. |
+| `.quiz-mcq-card`, `.quiz-mcq-card-selected` | `UITheme.applyMcqOption(...)` | Dynamic border color and background for normal, selected, correct, and incorrect. |
+| `.calendar-day-cell`, `.calendar-day-header` | `UITheme.applyCalendarCell(...)` | Day cell borders, current-day indicator badge, hover states. |
+| `.doc-text-area` | `UITheme.makeBorderlessTextArea(TextArea)` | **Zero borders**, zero inset, transparent background, auto-expanding row count. |
+| `.block-code-container`, `.code-text-area` | `UITheme.applyCodeSnippetBox(VBox, TextArea)` | **White box**, faint `#e2e8f0` border, dark monospace text. |
+| `.doc-tool-btn` | `UITheme.applyUnboxedActionButton(Button)` | **Frameless button**, clean typography, soft hover background (`#f1f5f9`). |
 
 ---
 
-## 4. Files to Modify
+## 4. Notebook Plain-Page Refactoring (In Pure JavaFX)
 
-| File | Changes |
-|---|---|
-| [HelloController.java](file:///c:/Users/User/IdeaProjects/Study_Buddy/src/main/java/com/example/study_buddy/HelloController.java) | - Re-architect `renderPageCanvas()` to use a top document toolbar and unified plain document canvas.<br>- Streamline `createTextBlockNode()`, `createCodeBlockNode()`, and `createImageBlockNode()` into borderless inline document sections.<br>- Add view filtering (`All`, `Notes`, `Code`, `Media`).<br>- Add hover controls for delete and reordering. |
-| [styles.css](file:///c:/Users/User/IdeaProjects/Study_Buddy/src/main/resources/com/example/study_buddy/styles.css) | - Add styles for `.plain-document-canvas`, `.doc-top-toolbar`, `.doc-filter-chip`, `.doc-text-area`, and `.doc-inline-media`.<br>- Refine `.block-code-container` for seamless inline integration. |
-| [hello-view.fxml](file:///c:/Users/User/IdeaProjects/Study_Buddy/src/main/resources/com/example/study_buddy/hello-view.fxml) | Ensure `pagePlaygroundContainer` has clean transparent styling to host the document canvas smoothly. |
+Incorporating the user's specific notebook requirements using pure JavaFX:
+
+1. **Top Action Buttons (`+ Text`, `+ Code`, `+ Image`, `+ Screenshot`)**:
+   - Placed in the top right header row without any enclosing grey box.
+   - Styled via `UITheme.applyUnboxedActionButton(button)`:
+     - No border, no permanent background box, smooth hover effect (`#f1f5f9`).
+2. **Single Continuous White Page**:
+   - `pagePlaygroundContainer` and `blocksContainer` set to pure white (`#ffffff`), with transparent scrollpane.
+3. **Default Text Mode**:
+   - Text blocks configured via `UITheme.makeBorderlessTextArea(textArea)`:
+     - No borders, no inset shadow, no focus outlines.
+     - Text renders seamlessly like typing directly on paper.
+     - Hover bar with `▲`, `▼`, `🗑️` reorder/remove controls.
+4. **Subtle Light Code Snippet Box**:
+   - White background (`#ffffff`), 1px faint border (`#e2e8f0`), rounded corners (`8px`).
+   - Top action bar right above the code box:
+     - `✏️ Edit`: Language selection dropdown.
+     - `📋 Copy`: Quick copy button with feedback transition.
+     - `▲` / `▼`: Move up / down.
+     - `🗑️ Remove`: Delete block.
+5. **Pure Frameless Image & Screenshot Insertion**:
+   - Raw `ImageView` placed directly on the white canvas with zero card padding or outline border.
+   - Top action bar right above the image:
+     - `✏️ Edit`: Replace image or update caption.
+     - `🔍 Open Full`: View full-size image in default desktop viewer.
+     - `▲` / `▼`: Move up / down.
+     - `🗑️ Remove`: Delete image.
 
 ---
 
-## 5. Verification Plan
+## 5. Migration Execution Steps
 
-1. **Automated Unit Tests**:
-   - Run `$env:JAVA_HOME = "C:\Users\User\.jdks\ms-21.0.12"; .\mvnw.cmd test` to ensure all 29 tests pass.
-2. **Plain Document Canvas Test**:
-   - Open a notebook &rarr; open a topic &rarr; open a page.
-   - Verify the page displays as a clean, unified white document without fragmented card boxes.
-3. **Multi-Content Flow Test**:
-   - Add notes, insert code snippet, paste screenshot, and upload image.
-   - Verify they render inline as a cohesive single document.
-4. **Top Toolbar Insertion Test**:
-   - Test `+ Text`, `+ Code`, `+ Image`, and `Paste Screenshot (Ctrl+V)` from the top toolbar.
-5. **Filter View Test**:
-   - Switch between `All`, `Notes`, `Code`, and `Media` to verify instant organization.
-6. **Data Persistence Test**:
-   - Edit text, change code language, copy code &rarr; reopen page &rarr; verify all content is saved correctly in SQLite.
+### Step 1: Create `com.example.study_buddy.UITheme.java`
+- Implement all styling methods, colors, and dynamic hover/focus handlers in pure JavaFX.
+
+### Step 2: Update `LoginController.java` & `login-view.fxml`
+- Remove `stylesheets="@styles.css"` and `styleClass` references from `login-view.fxml`.
+- Call `UITheme` helper methods during `initialize()` to style brand panel, inputs, and buttons.
+
+### Step 3: Update `HelloController.java` & `hello-view.fxml`
+- Remove `stylesheets="@styles.css"` and `styleClass` references from `hello-view.fxml`.
+- Replace all `getStyleClass().add(...)` calls with corresponding `UITheme` methods for:
+  - Navigation bar, top toolbar, and toggle buttons.
+  - Courses & Progress view (cards, badges, 3-dot menus, chapter cards).
+  - Quizzes view (question cards, MCQ option cards, result banner).
+  - Calendar view (day cells, headers, badges, task pills).
+  - Tasks & Deadlines sidebar.
+- Implement the refined **plain-page notebook layout** in `HelloController.java` using `UITheme`.
+
+### Step 4: Delete `src/main/resources/com/example/study_buddy/styles.css`
+- Safely remove the external CSS file from the project.
+
+### Step 5: Verification & Testing
+- Run `$env:JAVA_HOME = "C:\Users\User\.jdks\ms-21.0.12"; .\mvnw.cmd test` to ensure all 29 tests pass.
+- Verify UI flows (Login, Main Menu, Notebook, Courses, Quizzes, Calendar).

@@ -2374,18 +2374,31 @@ public class HelloController {
     }
 
     /**
+     * Helper to create sleek unboxed action buttons for the top right toolbar.
+     */
+    private Button createUnboxedButton(String text, Runnable action) {
+        Button btn = new Button(text);
+        String normalStyle = "-fx-background-color: transparent; -fx-text-fill: #4338ca; -fx-font-weight: bold; -fx-font-size: 12px; -fx-cursor: hand; -fx-padding: 6px 10px; -fx-background-radius: 6px;";
+        String hoverStyle = "-fx-background-color: #f1f5f9; -fx-text-fill: #3730a3; -fx-font-weight: bold; -fx-font-size: 12px; -fx-cursor: hand; -fx-padding: 6px 10px; -fx-background-radius: 6px;";
+        btn.setStyle(normalStyle);
+        btn.setOnMouseEntered(e -> btn.setStyle(hoverStyle));
+        btn.setOnMouseExited(e -> btn.setStyle(normalStyle));
+        btn.setOnAction(e -> action.run());
+        return btn;
+    }
+
+    /**
      * Renders the page playground canvas.
      */
     private void renderPageCanvas(Page page) {
         if (pagePlaygroundContainer == null) return;
         pagePlaygroundContainer.getChildren().clear();
 
-        // 1. Page Header: Title + Timestamp + Status
+        // 1. Top Row: Title (left) + Saved badge + 4 Unboxed Action Buttons (top right, no outer box)
         HBox topRow = new HBox(10);
         topRow.setAlignment(Pos.CENTER_LEFT);
 
         TextField pageTitleField = new TextField(page.getTitle());
-        pageTitleField.getStyleClass().add("page-title-field");
         pageTitleField.setStyle("-fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: #1e293b; -fx-background-color: transparent; -fx-border-color: transparent; -fx-border-width: 0; -fx-focus-color: transparent; -fx-faint-focus-color: transparent; -fx-padding: 0;");
         HBox.setHgrow(pageTitleField, Priority.ALWAYS);
         pageTitleField.focusedProperty().addListener((obs, oldVal, newVal) -> {
@@ -2416,54 +2429,45 @@ public class HelloController {
         Label saveBadge = new Label("Saved ✓");
         saveBadge.setStyle("-fx-font-size: 11px; -fx-text-fill: #10b981; -fx-background-color: #ecfdf5; -fx-padding: 2px 8px; -fx-background-radius: 10px;");
 
-        topRow.getChildren().addAll(pageTitleField, saveBadge);
+        // 4 Action Buttons placed at the top right, NOT in an enclosing box
+        HBox topActions = new HBox(6);
+        topActions.setAlignment(Pos.CENTER_RIGHT);
 
-        Label updatedLabel = new Label("Last edited: " + (page.getUpdatedAt() != null ? page.getUpdatedAt() : "Recently"));
-        updatedLabel.setStyle("-fx-font-size: 11px; -fx-text-fill: #94a3b8;");
-
-        // Top Sticky Document Toolbar (placed conveniently below page title)
-        HBox docToolbar = new HBox(8);
-        docToolbar.setAlignment(Pos.CENTER_LEFT);
-        docToolbar.getStyleClass().add("doc-top-toolbar");
-
-        Button addNoteBtn = new Button("📝 + Text");
-        addNoteBtn.getStyleClass().add("doc-tool-btn");
-        addNoteBtn.setOnAction(e -> {
+        Button addTextBtn = createUnboxedButton("📝 + Text", () -> {
             currentPageBlocks.add(new PageBlock(PageBlock.TYPE_TEXT, "", ""));
             saveCurrentPageBlocks();
             refreshBlocksView();
         });
 
-        Button addCodeBtn = new Button("💻 + Code Snippet");
-        addCodeBtn.getStyleClass().add("doc-tool-btn");
-        addCodeBtn.setOnAction(e -> {
+        Button addCodeBtn = createUnboxedButton("💻 + Code", () -> {
             currentPageBlocks.add(new PageBlock(PageBlock.TYPE_CODE, "", "Java"));
             saveCurrentPageBlocks();
             refreshBlocksView();
         });
 
-        Button addImageBtn = new Button("🖼 + Insert Image");
-        addImageBtn.getStyleClass().add("doc-tool-btn");
-        addImageBtn.setOnAction(e -> promptUploadImage());
+        Button addImageBtn = createUnboxedButton("🖼 + Image", this::promptUploadImage);
 
-        Button pasteScreenshotBtn = new Button("📷 Paste Screenshot (Ctrl + V)");
-        pasteScreenshotBtn.getStyleClass().add("doc-tool-btn-primary");
-        pasteScreenshotBtn.setOnAction(e -> handlePasteClipboardImage());
+        Button pasteScreenshotBtn = createUnboxedButton("📷 + Screenshot", this::handlePasteClipboardImage);
 
-        docToolbar.getChildren().addAll(addNoteBtn, addCodeBtn, addImageBtn, pasteScreenshotBtn);
+        topActions.getChildren().addAll(addTextBtn, addCodeBtn, addImageBtn, pasteScreenshotBtn);
 
-        VBox pageHeader = new VBox(8);
-        pageHeader.setPadding(new Insets(0, 0, 14, 0));
-        pageHeader.setStyle("-fx-border-color: #e2e8f0; -fx-border-width: 0 0 1px 0;");
-        pageHeader.getChildren().addAll(topRow, updatedLabel, docToolbar);
+        topRow.getChildren().addAll(pageTitleField, saveBadge, topActions);
 
-        // 2. Deserialize blocks
+        Label updatedLabel = new Label("Last edited: " + (page.getUpdatedAt() != null ? page.getUpdatedAt() : "Recently"));
+        updatedLabel.setStyle("-fx-font-size: 11px; -fx-text-fill: #94a3b8;");
+
+        VBox pageHeader = new VBox(6);
+        pageHeader.setPadding(new Insets(0, 0, 10, 0));
+        pageHeader.setStyle("-fx-border-color: #f1f5f9; -fx-border-width: 0 0 1px 0;");
+        pageHeader.getChildren().addAll(topRow, updatedLabel);
+
+        // 2. Deserialize blocks (defaults to +Text mode if empty)
         currentPageBlocks = PageBlock.deserializeList(page.getContentJson());
         if (currentPageBlocks.isEmpty()) {
             currentPageBlocks.add(new PageBlock(PageBlock.TYPE_TEXT, "", ""));
         }
 
-        // 3. Scrollable Blocks Container on Seamless Document Canvas
+        // 3. Scrollable Blocks Container on Seamless Plain White Canvas
         blocksContainer = new VBox(12);
         blocksContainer.setStyle("-fx-background-color: transparent;");
 
@@ -2476,7 +2480,7 @@ public class HelloController {
         refreshBlocksView();
 
         VBox docSheet = new VBox(14);
-        docSheet.getStyleClass().add("plain-doc-sheet");
+        docSheet.setStyle("-fx-background-color: #ffffff; -fx-background-radius: 8px; -fx-padding: 20px 24px;");
         VBox.setVgrow(docSheet, Priority.ALWAYS);
         docSheet.getChildren().addAll(pageHeader, scrollPane);
 
@@ -2509,27 +2513,27 @@ public class HelloController {
 
     private Node createTextBlockNode(PageBlock block, int index) {
         VBox docBlock = new VBox(2);
-        docBlock.getStyleClass().add("doc-text-block");
+        docBlock.setStyle("-fx-background-color: transparent; -fx-padding: 2px 0 4px 0;");
 
         // Subtle hover action bar
         HBox hoverBar = new HBox(4);
         hoverBar.setAlignment(Pos.CENTER_RIGHT);
-        hoverBar.getStyleClass().add("doc-hover-bar");
+        hoverBar.setStyle("-fx-background-color: #ffffff; -fx-background-radius: 6px; -fx-border-color: #e2e8f0; -fx-border-radius: 6px; -fx-border-width: 1px; -fx-padding: 1px 4px;");
         hoverBar.setMaxWidth(110);
         hoverBar.setVisible(false);
 
         Button upBtn = new Button("▲");
-        upBtn.getStyleClass().add("doc-hover-btn");
+        upBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #94a3b8; -fx-font-size: 11px; -fx-cursor: hand; -fx-padding: 2px 5px; -fx-background-radius: 4px;");
         upBtn.setDisable(index == 0);
         upBtn.setOnAction(e -> moveBlockUp(index));
 
         Button downBtn = new Button("▼");
-        downBtn.getStyleClass().add("doc-hover-btn");
+        downBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #94a3b8; -fx-font-size: 11px; -fx-cursor: hand; -fx-padding: 2px 5px; -fx-background-radius: 4px;");
         downBtn.setDisable(index == currentPageBlocks.size() - 1);
         downBtn.setOnAction(e -> moveBlockDown(index));
 
         Button delBtn = new Button("🗑");
-        delBtn.getStyleClass().add("doc-hover-btn");
+        delBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #ef4444; -fx-font-size: 11px; -fx-cursor: hand; -fx-padding: 2px 5px; -fx-background-radius: 4px;");
         delBtn.setOnAction(e -> {
             currentPageBlocks.remove(index);
             if (currentPageBlocks.isEmpty()) {
@@ -2547,10 +2551,11 @@ public class HelloController {
 
         TextArea textArea = new TextArea(block.getContent());
         textArea.getStyleClass().add("doc-text-area");
-        textArea.setPromptText("Type your notes freely here...");
+        textArea.setPromptText("Type notes freely here...");
         textArea.setWrapText(true);
         int lineCount = block.getContent().isEmpty() ? 3 : Math.max(3, block.getContent().split("\n", -1).length + 1);
         textArea.setPrefRowCount(Math.min(lineCount, 25));
+        textArea.setStyle("-fx-background-color: transparent; -fx-background-insets: 0; -fx-border-color: transparent; -fx-border-width: 0; -fx-focus-color: transparent; -fx-faint-focus-color: transparent; -fx-box-border: transparent; -fx-padding: 0; -fx-font-family: 'Segoe UI', system-ui, sans-serif; -fx-font-size: 14px; -fx-text-fill: #1e293b; -fx-line-spacing: 3px;");
 
         textArea.textProperty().addListener((obs, oldText, newText) -> {
             block.setContent(newText);
@@ -2574,29 +2579,51 @@ public class HelloController {
 
     private Node createCodeBlockNode(PageBlock block, int index) {
         VBox card = new VBox(6);
-        card.getStyleClass().add("block-code-container");
+        // Simple white box with less visible faint border (#e2e8f0)
+        card.setStyle("-fx-background-color: #ffffff; -fx-border-color: #e2e8f0; -fx-border-width: 1px; -fx-border-radius: 8px; -fx-background-radius: 8px; -fx-padding: 10px 14px; -fx-effect: dropshadow(three-pass-box, rgba(15, 23, 42, 0.03), 6, 0, 0, 1);");
 
-        HBox header = new HBox(8);
-        header.setAlignment(Pos.CENTER_LEFT);
-        header.setStyle("-fx-padding: 0 0 6px 0; -fx-border-color: #334155; -fx-border-width: 0 0 1px 0;");
+        HBox topBar = new HBox(8);
+        topBar.setAlignment(Pos.CENTER_LEFT);
+        topBar.setStyle("-fx-padding: 0 0 6px 0; -fx-border-color: #f1f5f9; -fx-border-width: 0 0 1px 0;");
 
-        Label typeLbl = new Label("💻 Code Snippet");
-        typeLbl.setStyle("-fx-font-weight: bold; -fx-font-size: 11px; -fx-text-fill: #94a3b8;");
+        Label typeLbl = new Label("💻 Code");
+        typeLbl.setStyle("-fx-font-weight: bold; -fx-font-size: 11px; -fx-text-fill: #64748b;");
+
+        Label langBadge = new Label((block.getExtra() != null && !block.getExtra().isEmpty()) ? block.getExtra() : "Java");
+        langBadge.setStyle("-fx-background-color: #f1f5f9; -fx-text-fill: #475569; -fx-font-size: 11px; -fx-font-weight: bold; -fx-padding: 2px 7px; -fx-background-radius: 4px;");
 
         ComboBox<String> langCombo = new ComboBox<>();
         langCombo.getItems().addAll("Java", "Python", "C", "C++", "JavaScript", "HTML/CSS", "SQL", "Bash", "Text");
-        langCombo.setValue((block.getExtra() != null && !block.getExtra().isEmpty()) ? block.getExtra() : "Java");
-        langCombo.setStyle("-fx-background-color: #1e293b; -fx-mark-color: #94a3b8; -fx-font-size: 11px;");
+        langCombo.setValue(langBadge.getText());
+        langCombo.setStyle("-fx-background-color: #f8fafc; -fx-font-size: 11px; -fx-border-color: #cbd5e1; -fx-border-radius: 4px;");
+        langCombo.setVisible(false);
+        langCombo.setManaged(false);
         langCombo.setOnAction(e -> {
             block.setExtra(langCombo.getValue());
+            langBadge.setText(langCombo.getValue());
+            langCombo.setVisible(false);
+            langCombo.setManaged(false);
+            langBadge.setVisible(true);
+            langBadge.setManaged(true);
             saveCurrentPageBlocks();
+        });
+
+        // Top Edit Option: toggle language selector
+        Button editBtn = new Button("✏️ Edit");
+        editBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #4f46e5; -fx-font-size: 11px; -fx-font-weight: bold; -fx-cursor: hand; -fx-padding: 2px 6px; -fx-background-radius: 4px;");
+        editBtn.setOnAction(e -> {
+            boolean isEditing = !langCombo.isVisible();
+            langCombo.setVisible(isEditing);
+            langCombo.setManaged(isEditing);
+            langBadge.setVisible(!isEditing);
+            langBadge.setManaged(!isEditing);
         });
 
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
-        Button copyBtn = new Button("📋 Copy Code");
-        copyBtn.getStyleClass().add("btn-copy-code");
+        Button copyBtn = new Button("📋 Copy");
+        copyBtn.setStyle("-fx-background-color: #f1f5f9; -fx-text-fill: #334155; -fx-font-size: 11px; -fx-font-weight: bold; -fx-background-radius: 6px; -fx-padding: 3px 8px; -fx-cursor: hand;");
         copyBtn.setOnAction(e -> {
             Clipboard clipboard = Clipboard.getSystemClipboard();
             ClipboardContent cc = new ClipboardContent();
@@ -2604,41 +2631,42 @@ public class HelloController {
             clipboard.setContent(cc);
 
             copyBtn.setText("✓ Copied!");
-            copyBtn.setStyle("-fx-background-color: #059669; -fx-text-fill: #ffffff; -fx-font-size: 11px; -fx-font-weight: bold; -fx-background-radius: 6px; -fx-padding: 4px 10px;");
+            copyBtn.setStyle("-fx-background-color: #059669; -fx-text-fill: #ffffff; -fx-font-size: 11px; -fx-font-weight: bold; -fx-background-radius: 6px; -fx-padding: 3px 8px;");
             PauseTransition pause = new PauseTransition(Duration.seconds(1.5));
             pause.setOnFinished(ev -> {
-                copyBtn.setText("📋 Copy Code");
-                copyBtn.setStyle("");
-                copyBtn.getStyleClass().add("btn-copy-code");
+                copyBtn.setText("📋 Copy");
+                copyBtn.setStyle("-fx-background-color: #f1f5f9; -fx-text-fill: #334155; -fx-font-size: 11px; -fx-font-weight: bold; -fx-background-radius: 6px; -fx-padding: 3px 8px; -fx-cursor: hand;");
             });
             pause.play();
         });
 
         Button upBtn = new Button("▲");
-        upBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #64748b; -fx-font-size: 11px; -fx-cursor: hand;");
+        upBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #94a3b8; -fx-font-size: 11px; -fx-cursor: hand;");
         upBtn.setDisable(index == 0);
         upBtn.setOnAction(e -> moveBlockUp(index));
 
         Button downBtn = new Button("▼");
-        downBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #64748b; -fx-font-size: 11px; -fx-cursor: hand;");
+        downBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #94a3b8; -fx-font-size: 11px; -fx-cursor: hand;");
         downBtn.setDisable(index == currentPageBlocks.size() - 1);
         downBtn.setOnAction(e -> moveBlockDown(index));
 
-        Button delBtn = new Button("🗑");
-        delBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #ef4444; -fx-font-size: 12px; -fx-cursor: hand;");
+        // Top Remove Option
+        Button delBtn = new Button("🗑 Remove");
+        delBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #ef4444; -fx-font-size: 11px; -fx-font-weight: bold; -fx-cursor: hand; -fx-padding: 2px 6px; -fx-background-radius: 4px;");
         delBtn.setOnAction(e -> {
             currentPageBlocks.remove(index);
             saveCurrentPageBlocks();
             refreshBlocksView();
         });
 
-        header.getChildren().addAll(typeLbl, langCombo, spacer, copyBtn, upBtn, downBtn, delBtn);
+        topBar.getChildren().addAll(typeLbl, langBadge, langCombo, editBtn, spacer, copyBtn, upBtn, downBtn, delBtn);
 
         TextArea codeArea = new TextArea(block.getContent());
         codeArea.getStyleClass().add("code-text-area");
         codeArea.setWrapText(false);
         int lineCount = block.getContent().isEmpty() ? 5 : Math.max(5, block.getContent().split("\n", -1).length + 2);
         codeArea.setPrefRowCount(Math.min(lineCount, 22));
+        codeArea.setStyle("-fx-font-family: 'Consolas', 'Courier New', monospace; -fx-font-size: 13px; -fx-text-fill: #1e293b; -fx-background-color: transparent; -fx-border-color: transparent; -fx-border-width: 0;");
 
         codeArea.textProperty().addListener((obs, oldText, newText) -> {
             block.setContent(newText);
@@ -2653,27 +2681,55 @@ public class HelloController {
             }
         });
 
-        card.getChildren().addAll(header, codeArea);
+        card.getChildren().addAll(topBar, codeArea);
         return card;
     }
 
     private Node createImageBlockNode(PageBlock block, int index) {
-        VBox card = new VBox(8);
-        card.setStyle("-fx-background-color: #f8fafc; -fx-padding: 12px 16px; -fx-background-radius: 8px; -fx-border-color: #e2e8f0; -fx-border-radius: 8px;");
+        VBox mediaNode = new VBox(6);
+        // NO BORDER, NO EXTRA BOX, completely transparent!
+        mediaNode.setStyle("-fx-background-color: transparent; -fx-border-width: 0; -fx-padding: 8px 0;");
 
-        HBox header = new HBox(8);
-        header.setAlignment(Pos.CENTER_LEFT);
+        // Top action bar with Remove and Edit options
+        HBox topBar = new HBox(8);
+        topBar.setAlignment(Pos.CENTER_LEFT);
+        topBar.setStyle("-fx-padding: 2px 0;");
 
-        Label typeLbl = new Label("🖼 Image / Screenshot");
-        typeLbl.setStyle("-fx-font-weight: bold; -fx-font-size: 11px; -fx-text-fill: #475569;");
-
-        Region spacer = new Region();
-        HBox.setHgrow(spacer, Priority.ALWAYS);
+        Label typeLbl = new Label("🖼 Image");
+        typeLbl.setStyle("-fx-font-weight: bold; -fx-font-size: 11px; -fx-text-fill: #64748b;");
 
         File imgFile = new File(block.getContent());
 
+        // Top Edit / Replace Option
+        Button editBtn = new Button("✏️ Edit / Replace");
+        editBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #4f46e5; -fx-font-size: 11px; -fx-font-weight: bold; -fx-cursor: hand; -fx-padding: 2px 6px; -fx-background-radius: 4px;");
+        editBtn.setOnAction(e -> {
+            FileChooser chooser = new FileChooser();
+            chooser.setTitle("Replace Image");
+            chooser.getExtensionFilters().addAll(
+                    new FileChooser.ExtensionFilter("Image Files", "*.png", "*.jpg", "*.jpeg", "*.gif", "*.bmp"),
+                    new FileChooser.ExtensionFilter("All Files", "*.*")
+            );
+            Stage stage = (Stage) notebookWorkspaceView.getScene().getWindow();
+            File selected = chooser.showOpenDialog(stage);
+            if (selected != null && currentNotebook != null) {
+                try {
+                    File dir = new File("study_buddy_data/images/" + currentNotebook.getId());
+                    if (!dir.exists()) dir.mkdirs();
+                    String storedName = "img_" + System.currentTimeMillis() + "_" + selected.getName();
+                    File targetFile = new File(dir, storedName);
+                    Files.copy(selected.toPath(), targetFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+                    block.setContent(targetFile.getAbsolutePath());
+                    saveCurrentPageBlocks();
+                    refreshBlocksView();
+                } catch (Exception ex) {
+                    showError("Image Error", "Failed to replace image: " + ex.getMessage());
+                }
+            }
+        });
+
         Button openFullBtn = new Button("🔍 Open");
-        openFullBtn.setStyle("-fx-background-color: #ffffff; -fx-text-fill: #334155; -fx-font-size: 11px; -fx-padding: 3px 8px; -fx-cursor: hand; -fx-background-radius: 4px; -fx-border-color: #cbd5e1; -fx-border-radius: 4px;");
+        openFullBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #334155; -fx-font-size: 11px; -fx-cursor: hand; -fx-padding: 2px 6px;");
         openFullBtn.setOnAction(e -> {
             if (imgFile.exists()) {
                 try {
@@ -2686,28 +2742,33 @@ public class HelloController {
             }
         });
 
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+
         Button upBtn = new Button("▲");
-        upBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #64748b; -fx-font-size: 11px; -fx-cursor: hand;");
+        upBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #94a3b8; -fx-font-size: 11px; -fx-cursor: hand;");
         upBtn.setDisable(index == 0);
         upBtn.setOnAction(e -> moveBlockUp(index));
 
         Button downBtn = new Button("▼");
-        downBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #64748b; -fx-font-size: 11px; -fx-cursor: hand;");
+        downBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #94a3b8; -fx-font-size: 11px; -fx-cursor: hand;");
         downBtn.setDisable(index == currentPageBlocks.size() - 1);
         downBtn.setOnAction(e -> moveBlockDown(index));
 
-        Button delBtn = new Button("🗑");
-        delBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #ef4444; -fx-font-size: 12px; -fx-cursor: hand;");
+        // Top Remove Option
+        Button delBtn = new Button("🗑 Remove");
+        delBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #ef4444; -fx-font-size: 11px; -fx-font-weight: bold; -fx-cursor: hand; -fx-padding: 2px 6px; -fx-background-radius: 4px;");
         delBtn.setOnAction(e -> {
             currentPageBlocks.remove(index);
             saveCurrentPageBlocks();
             refreshBlocksView();
         });
 
-        header.getChildren().addAll(typeLbl, spacer, openFullBtn, upBtn, downBtn, delBtn);
+        topBar.getChildren().addAll(typeLbl, editBtn, openFullBtn, spacer, upBtn, downBtn, delBtn);
 
         VBox contentBox = new VBox(6);
         contentBox.setAlignment(Pos.CENTER);
+        contentBox.setStyle("-fx-background-color: transparent; -fx-border-width: 0;");
 
         if (imgFile.exists()) {
             try {
@@ -2715,8 +2776,8 @@ public class HelloController {
                 ImageView imgView = new ImageView(img);
                 imgView.setPreserveRatio(true);
                 imgView.setSmooth(true);
-                imgView.setFitWidth(650);
-                imgView.setStyle("-fx-cursor: hand; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.06), 6, 0, 0, 2);");
+                imgView.setFitWidth(680);
+                imgView.setStyle("-fx-cursor: hand;");
                 imgView.setOnMouseClicked(e -> {
                     if (e.getClickCount() == 2) {
                         try {
@@ -2738,7 +2799,7 @@ public class HelloController {
         }
 
         TextField captionField = new TextField(block.getExtra());
-        captionField.setPromptText("Add caption or note...");
+        captionField.setPromptText("Add caption or note (optional)...");
         captionField.setStyle("-fx-font-size: 11px; -fx-background-color: transparent; -fx-border-color: transparent; -fx-text-fill: #64748b; -fx-alignment: center; -fx-font-style: italic;");
         captionField.focusedProperty().addListener((obs, oldVal, newVal) -> {
             if (!newVal) {
@@ -2747,8 +2808,8 @@ public class HelloController {
             }
         });
 
-        card.getChildren().addAll(header, contentBox, captionField);
-        return card;
+        mediaNode.getChildren().addAll(topBar, contentBox, captionField);
+        return mediaNode;
     }
 
     private void moveBlockUp(int index) {
