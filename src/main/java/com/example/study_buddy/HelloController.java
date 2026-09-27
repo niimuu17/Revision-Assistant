@@ -1593,16 +1593,9 @@ public class HelloController {
                     }
                 }
 
-                // Add Explanation box
+                // Add Explanation box with See More / See Less
                 if (q.getExplanation() != null && !q.getExplanation().trim().isEmpty()) {
-                    VBox explBox = new VBox(4);
-                    explBox.getStyleClass().add("quiz-explanation-box");
-                    Label explTitle = new Label("💡 Explanation:");
-                    explTitle.setStyle("-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #4338ca;");
-                    Label explText = new Label(q.getExplanation());
-                    explText.setWrapText(true);
-                    explText.setStyle("-fx-font-size: 12px; -fx-text-fill: #334155;");
-                    explBox.getChildren().addAll(explTitle, explText);
+                    VBox explBox = createExpandableExplanationBox("💡 Explanation:", q.getExplanation(), 140, card);
                     card.getChildren().add(explBox);
                 }
             } else {
@@ -1614,10 +1607,15 @@ public class HelloController {
                         break;
                     }
                 }
+                boolean isUnsubmitted = q.getStudentAnswer() == null || q.getStudentAnswer().trim().isEmpty();
                 if (saBox != null) {
                     for (Node saChild : saBox.getChildren()) {
                         if (saChild instanceof TextArea) {
-                            ((TextArea) saChild).setEditable(false);
+                            TextArea area = (TextArea) saChild;
+                            area.setEditable(false);
+                            if (isUnsubmitted) {
+                                area.setPromptText("No response was submitted.");
+                            }
                         }
                     }
                 }
@@ -1633,18 +1631,36 @@ public class HelloController {
                 Region sp = new Region();
                 HBox.setHgrow(sp, Priority.ALWAYS);
                 Label scorePill = new Label("Score: " + q.getAwardedScore() + " / " + q.getMaxScore() + " pts");
-                scorePill.setStyle("-fx-background-color: #dcfce7; -fx-text-fill: #166534; -fx-font-weight: bold; -fx-background-radius: 10px; -fx-padding: 2px 8px; -fx-font-size: 11px;");
+                if (isUnsubmitted) {
+                    scorePill.setStyle("-fx-background-color: #fee2e2; -fx-text-fill: #991b1b; -fx-font-weight: bold; -fx-background-radius: 10px; -fx-padding: 2px 8px; -fx-font-size: 11px;");
+                } else if (q.getAwardedScore() >= q.getMaxScore()) {
+                    scorePill.setStyle("-fx-background-color: #dcfce7; -fx-text-fill: #166534; -fx-font-weight: bold; -fx-background-radius: 10px; -fx-padding: 2px 8px; -fx-font-size: 11px;");
+                } else {
+                    scorePill.setStyle("-fx-background-color: #fef3c7; -fx-text-fill: #92400e; -fx-font-weight: bold; -fx-background-radius: 10px; -fx-padding: 2px 8px; -fx-font-size: 11px;");
+                }
                 fbHeader.getChildren().addAll(fbIcon, sp, scorePill);
 
-                Label fbText = new Label(q.getAiFeedback().isEmpty() ? "No feedback returned." : q.getAiFeedback());
+                Label fbText = new Label();
                 fbText.setWrapText(true);
-                fbText.setStyle("-fx-font-size: 12px; -fx-text-fill: #1e293b;");
+                fbText.setMinHeight(Region.USE_PREF_SIZE);
+                fbText.prefWidthProperty().bind(card.widthProperty().subtract(60));
 
-                Label rubricText = new Label("Expected Key Points: " + q.getRubric());
-                rubricText.setWrapText(true);
-                rubricText.setStyle("-fx-font-size: 11px; -fx-text-fill: #64748b; -fx-font-style: italic;");
+                if (isUnsubmitted) {
+                    fbText.setText("No response was submitted.");
+                    fbText.setStyle("-fx-font-size: 12px; -fx-text-fill: #64748b; -fx-font-style: italic;");
+                } else {
+                    fbText.setText(q.getAiFeedback().isEmpty() ? "No feedback returned." : q.getAiFeedback());
+                    fbText.setStyle("-fx-font-size: 12px; -fx-text-fill: #1e293b;");
+                }
 
-                fbBox.getChildren().addAll(fbHeader, fbText, rubricText);
+                fbBox.getChildren().addAll(fbHeader, fbText);
+
+                // Explanation / expected model answer box with See More / See Less
+                if (q.getRubric() != null && !q.getRubric().trim().isEmpty()) {
+                    VBox rubricExplBox = createExpandableExplanationBox("💡 Explanation:", q.getRubric(), 140, card);
+                    fbBox.getChildren().add(rubricExplBox);
+                }
+
                 card.getChildren().add(fbBox);
             }
         }
@@ -1655,6 +1671,54 @@ public class HelloController {
         if (quizProgressLabel != null) {
             quizProgressLabel.setText(String.format("🎉 Quiz Completed! Final Score: %d / %d (%d%%)", totalEarned, totalMax, pct));
         }
+    }
+
+    /**
+     * Builds an expandable explanation box with See More / See Less toggle.
+     */
+    private VBox createExpandableExplanationBox(String titleText, String fullContent, int threshold, Node parentCard) {
+        VBox explBox = new VBox(6);
+        explBox.getStyleClass().add("quiz-explanation-box");
+
+        Label explTitle = new Label(titleText);
+        explTitle.setStyle("-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #4338ca;");
+
+        Label explText = new Label();
+        explText.setWrapText(true);
+        explText.setMinHeight(Region.USE_PREF_SIZE);
+        explText.setStyle("-fx-font-size: 12px; -fx-text-fill: #334155; -fx-line-spacing: 2px;");
+        if (parentCard instanceof Region) {
+            explText.prefWidthProperty().bind(((Region) parentCard).widthProperty().subtract(70));
+        }
+
+        explBox.getChildren().addAll(explTitle, explText);
+
+        if (fullContent != null && fullContent.length() > threshold) {
+            int cutIdx = fullContent.lastIndexOf(' ', threshold - 10);
+            if (cutIdx <= 0) cutIdx = threshold;
+            String excerpt = fullContent.substring(0, cutIdx).trim() + "...";
+            explText.setText(excerpt);
+
+            Button seeMoreBtn = new Button("See More ▾");
+            seeMoreBtn.getStyleClass().add("quiz-see-more-btn");
+            boolean[] isExpanded = new boolean[]{false};
+            seeMoreBtn.setOnAction(e -> {
+                if (!isExpanded[0]) {
+                    explText.setText(fullContent);
+                    seeMoreBtn.setText("See Less ▴");
+                    isExpanded[0] = true;
+                } else {
+                    explText.setText(excerpt);
+                    seeMoreBtn.setText("See More ▾");
+                    isExpanded[0] = false;
+                }
+            });
+            explBox.getChildren().add(seeMoreBtn);
+        } else {
+            explText.setText(fullContent != null ? fullContent : "");
+        }
+
+        return explBox;
     }
 
     /**

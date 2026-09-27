@@ -114,7 +114,7 @@ public class GeminiApiService {
         }
 
         promptBuilder.append("REQUIREMENTS:\n");
-        promptBuilder.append("1. For MCQ: Exactly 4 distinct options. Specify 'correctIndex' as an integer 0, 1, 2, or 3. Provide a clear educational 'explanation'.\n");
+        promptBuilder.append("1. For MCQ: Exactly 4 distinct options. Specify 'correctIndex' as an integer 0, 1, 2, or 3. Provide a complete educational 'explanation' without trailing ellipsis.\n");
         promptBuilder.append("2. For SHORT_ANSWER: Provide a clear rubric detailing key points expected in a complete answer, and set maxScore to 5.\n");
         promptBuilder.append("3. Return strictly valid JSON with this exact structure:\n");
         promptBuilder.append("{\n");
