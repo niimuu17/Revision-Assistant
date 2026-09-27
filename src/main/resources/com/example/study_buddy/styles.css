@@ -367,6 +367,112 @@
     -fx-text-fill: #4338ca;
 }
 
+/* ==========================================================================
+   Plain Window Document Canvas Styles
+   ========================================================================== */
+
+.plain-doc-sheet {
+    -fx-background-color: #ffffff;
+    -fx-background-radius: 10px;
+    -fx-border-color: #e2e8f0;
+    -fx-border-radius: 10px;
+    -fx-border-width: 1px;
+    -fx-padding: 24px 28px;
+    -fx-effect: dropshadow(three-pass-box, rgba(15, 23, 42, 0.03), 8, 0, 0, 2);
+}
+
+.doc-top-toolbar {
+    -fx-background-color: #f8fafc;
+    -fx-background-radius: 8px;
+    -fx-padding: 6px 10px;
+    -fx-border-color: #e2e8f0;
+    -fx-border-radius: 8px;
+    -fx-border-width: 1px;
+}
+
+.doc-tool-btn {
+    -fx-background-color: #ffffff;
+    -fx-text-fill: #334155;
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+    -fx-background-radius: 6px;
+    -fx-border-color: #cbd5e1;
+    -fx-border-radius: 6px;
+    -fx-border-width: 1px;
+    -fx-padding: 6px 14px;
+    -fx-cursor: hand;
+}
+
+.doc-tool-btn:hover {
+    -fx-background-color: #f1f5f9;
+    -fx-border-color: #94a3b8;
+    -fx-text-fill: #1e293b;
+}
+
+.doc-tool-btn-primary {
+    -fx-background-color: #eef2ff;
+    -fx-text-fill: #4338ca;
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+    -fx-background-radius: 6px;
+    -fx-border-color: #c7d2fe;
+    -fx-border-radius: 6px;
+    -fx-border-width: 1px;
+    -fx-padding: 6px 14px;
+    -fx-cursor: hand;
+}
+
+.doc-tool-btn-primary:hover {
+    -fx-background-color: #e0e7ff;
+    -fx-text-fill: #3730a3;
+}
+
+.doc-text-block {
+    -fx-background-color: transparent;
+    -fx-padding: 2px 0 6px 0;
+}
+
+.doc-text-area {
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+    -fx-font-size: 14px;
+    -fx-text-fill: #1e293b;
+    -fx-line-spacing: 3px;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+
+.doc-text-area .content {
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-padding: 4px 2px;
+}
+
+.doc-hover-bar {
+    -fx-background-color: #ffffff;
+    -fx-background-radius: 6px;
+    -fx-border-color: #e2e8f0;
+    -fx-border-radius: 6px;
+    -fx-border-width: 1px;
+    -fx-padding: 1px 4px;
+    -fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.08), 4, 0, 0, 1);
+}
+
+.doc-hover-btn {
+    -fx-background-color: transparent;
+    -fx-text-fill: #94a3b8;
+    -fx-font-size: 11px;
+    -fx-cursor: hand;
+    -fx-padding: 2px 5px;
+    -fx-background-radius: 4px;
+}
+
+.doc-hover-btn:hover {
+    -fx-background-color: #f1f5f9;
+    -fx-text-fill: #334155;
+}
+
 /* Tasks & Deadlines Sidebar */
 .task-card {
     -fx-background-color: #ffffff;
