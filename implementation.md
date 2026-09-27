@@ -1,131 +1,120 @@
-# Implementation Plan: Complete Migration from `styles.css` to Pure JavaFX & Plain-Page Notebook
+# Implementation Plan: OneNote Clean Page with Single `+ Image` Button & Clickable Media Actions
 
-## 1. Executive Summary & Objective
+## 1. User Requirements Breakdown
 
-The user requested:
-1. **Complete Removal of `styles.css`**: Remove all CSS stylesheets from the application and replace all styling across the entire project (Login, Main Menu / Dashboard, Courses, Quizzes, Calendar, Tasks, Notebook) with **pure JavaFX code**.
-2. **Implementation of Plain-Page Notebook Layout**:
-   - 4 unboxed buttons at top right (`+ Text`, `+ Code`, `+ Image`, `+ Screenshot`).
-   - Single plain white continuous page below.
-   - Default borderless text writing mode.
-   - Simple white code box with faint/less visible border (`#e2e8f0`), monospace text, and top `✏️ Edit`, `📋 Copy`, `🗑️ Remove` options.
-   - Frameless inline images and pasted screenshots with zero outer border/card wrapping, and top `✏️ Edit`, `🔍 Open Full`, `🗑️ Remove` options.
+> **User's Request**:  
+> *"Inline title will be page name. And after clicking the screenshot show remove and copy option, just keep a +image button. And set image functionality as screenshot. Show me implementation plan."*
+
+### Key Specifications:
+1. **Inline Title as Page Name**:
+   - The page name (`page.getTitle()`, e.g. "Class") serves as the large inline editable title (26px, bold, borderless).
+   - Editing the title auto-updates the page name in SQLite database and in the topics explorer breadcrumb.
+   - Thin horizontal divider line underneath the title.
+   - Formatted date and time line below the divider (`Tuesday, September 22, 2026      7:41 PM`).
+2. **Just ONE Button: `+ Image`**:
+   - Remove `+ Code`, `+ Text`, and `+ Screenshot` buttons.
+   - Keep only a single clean, unboxed `🖼 + Image` button at the top right header (next to the discreet `Saved ✓` indicator).
+3. **Unified Image & Screenshot Functionality**:
+   - **`Ctrl + V` Typing Shortcut**: While typing in any text area, pressing `Ctrl + V` with an image in the clipboard automatically splits the text, inserts the screenshot directly below, creates a new text line underneath, and shifts focus there so writing continues uninterrupted.
+   - **Clicking `+ Image` Button**: Checks the clipboard first—if a screenshot/image is in the clipboard, it inserts it instantly; if no image is on the clipboard, it opens a file chooser dialog to select an image from disk.
+4. **Clickable Media Actions (`📋 Copy` & `🗑 Remove`)**:
+   - When viewing the page, images/screenshots render **completely clean and frameless** with zero borders and zero extra boxes (matching the reference screenshot).
+   - **When the user clicks on the image/screenshot**:
+     - A sleek floating action bar appears on top of the image containing:
+       - `📋 Copy`: Copies the image back to the system clipboard (shows "✓ Copied!").
+       - `🗑 Remove`: Deletes the image block from the page.
+     - Clicking again or clicking elsewhere deselects the image and hides the toolbar.
 
 ---
 
-## 2. Architecture: Centralized JavaFX Styling Engine (`UITheme.java`)
-
-To ensure clean, maintainable, and robust styling without duplicating style strings across controllers, we will create a dedicated JavaFX styling engine:
-`com.example.study_buddy.UITheme`
-
-### Why `UITheme.java`?
-- **Zero CSS Files**: Eliminates external `.css` files and class-lookup overhead.
-- **Type-Safe Design Tokens**: Centralizes all colors, fonts, insets, borders, and shadows as strongly-typed Java constants:
-  - `PRIMARY_COLOR = "#4f46e5"`
-  - `BORDER_COLOR = "#e2e8f0"`
-  - `TEXT_DARK = "#1e293b"`
-  - `BG_CANVAS = "#ffffff"`
-  - `BG_MUTED = "#f8fafc"`
-- **Programmatic State Handling**: Attaches hover, focus, and press effects dynamically using JavaFX properties (`node.hoverProperty()`, `node.focusedProperty()`, `node.pressedProperty()`).
+## 2. Visual Layout & Interaction Mockup
 
 ```
-+-----------------------------------------------------------------------------------+
-|                              UITheme.java (Pure JavaFX)                          |
-+-----------------------------------------------------------------------------------+
-|  [Design Tokens]                                                                  |
-|   • Colors: PRIMARY (#4f46e5), BORDER (#e2e8f0), MUTED_TEXT (#64748b)            |
-|   • Fonts: Segoe UI, Consolas Monospace                                           |
-|   • Shadows: DropShadow three-pass blur                                           |
-+-----------------------------------------------------------------------------------+
-|  [Component Stylers]                                                              |
-|   • applyPrimaryButton(Button)         • applyToggleButton(Button)                |
-|   • applySecondaryButton(Button)       • applyLogoutButton(Button)                |
-|   • applyNavItem(Button, boolean)      • applyTextInput(TextInputControl)         |
-|   • applyCourseCard(VBox)              • applyNotebookCard(VBox)                  |
-|   • applyQuizCard(VBox)                • applyMcqOption(VBox, boolean selected)   |
-|   • applyCalendarCell(VBox, boolean)   • makeBorderlessTextArea(TextArea)         |
-|   • applyCodeContainer(VBox)           • applyTopActionButton(Button)             |
-+-----------------------------------------------------------------------------------+
++-----------------------------------------------------------------------------------------------+
+|  Class                                                     [ Saved ✓ ]        [ 🖼 + Image ]  |
+|  -------------------------------------------------------------------------------------------  |
+|  Tuesday, September 22, 2026      7:41 PM                                                     |
+|                                                                                               |
+|  I love my country                                                                            |
+|                                                                                               |
+|  +-- [ When user clicks image: Action bar appears ] -----------------[ 📋 Copy ] [ 🗑 Remove ]+  |
+|  |                                                                                         |  |
+|  |                 [ Pure Inline Image / Screenshot - Frameless Display ]                   |  |
+|  |                                                                                         |  |
+|  +-----------------------------------------------------------------------------------------+  |
+|                                                                                               |
+|  I love my country too|                                                                       |
+|  (cursor is blinking here, ready to continue typing...)                                       |
+|                                                                                               |
++-----------------------------------------------------------------------------------------------+
 ```
 
 ---
 
-## 3. Mapping: CSS Selectors to JavaFX Programmatic Methods
+## 3. Technical Implementation Details
 
-Every class in `styles.css` maps directly to a clean JavaFX method in `UITheme`:
+### A. OneNote-Style Header with Single `+ Image` Button (`HelloController.java`)
+In `renderPageCanvas(Page page)`:
+- Left:
+  - `pageTitleField`: 26px bold text field, borderless, transparent, bound to `page.getTitle()`.
+  - On focus lost or Enter: saves the new title to SQLite and updates the notebook topics explorer.
+- Right:
+  - `saveBadge`: "Saved ✓"
+  - `addImageBtn`: Single unboxed button labeled `🖼 + Image`.
+- Divider:
+  - 1px thin border line (`#e2e8f0`).
+- Subtitle:
+  - Date and time formatted dynamically from `page.getUpdatedAt()` or current time (e.g. `Tuesday, September 22, 2026      7:41 PM`).
 
-| Original CSS Class in `styles.css` | `UITheme` Method in Pure JavaFX | Behavior & Interactions |
-|---|---|---|
-| `.root`, `.main-container` | `UITheme.applyBackground(Region)` | Subtle linear gradient background (`#f8fafc` to `#e2e8f0`). |
-| `.brand-panel`, `.brand-title`, `.brand-badge` | `UITheme.applyBrandPanel(...)` | Gradient background (`#312e81` to `#4f46e5`), bold labels. |
-| `.btn-primary` | `UITheme.applyPrimaryButton(Button)` | Indigo gradient, bold white text, hover & pressed animations. |
-| `.btn-toggle` | `UITheme.applyToggleButton(Button)` | Clean square toggle with hover highlight. |
-| `.btn-logout` | `UITheme.applyLogoutButton(Button)` | Soft red background (`#fee2e2`), bold red text, hover highlight. |
-| `.nav-item`, `.nav-item-active` | `UITheme.applyNavItem(Button, boolean)` | Transparent resting state, lavender highlight when active, hover feedback. |
-| `.text-input` | `UITheme.applyTextInput(TextInputControl)` | Rounded border, focus shadow & indigo border on focus. |
-| `.notebook-card`, `.course-card`, `.chapter-card` | `UITheme.applyCard(...)` | White card, rounded corners, subtle dropshadow, hover elevation. |
-| `.quiz-mcq-card`, `.quiz-mcq-card-selected` | `UITheme.applyMcqOption(...)` | Dynamic border color and background for normal, selected, correct, and incorrect. |
-| `.calendar-day-cell`, `.calendar-day-header` | `UITheme.applyCalendarCell(...)` | Day cell borders, current-day indicator badge, hover states. |
-| `.doc-text-area` | `UITheme.makeBorderlessTextArea(TextArea)` | **Zero borders**, zero inset, transparent background, auto-expanding row count. |
-| `.block-code-container`, `.code-text-area` | `UITheme.applyCodeSnippetBox(VBox, TextArea)` | **White box**, faint `#e2e8f0` border, dark monospace text. |
-| `.doc-tool-btn` | `UITheme.applyUnboxedActionButton(Button)` | **Frameless button**, clean typography, soft hover background (`#f1f5f9`). |
+### B. Smart Image Insertion Logic (`handleSmartImageOrScreenshot`)
+Unified handler for both clicking `+ Image` and pressing `Ctrl + V`:
+1. **Clipboard Check**:
+   - If `Clipboard.getSystemClipboard().hasImage()`:
+     - Extract `Image fxImage = clipboard.getImage()`.
+     - Save to `study_buddy_data/images/<notebookId>/`.
+     - Insert `PageBlock(TYPE_IMAGE, targetFile.getAbsolutePath(), "")`.
+   - If no clipboard image (when clicking `+ Image`):
+     - Open `FileChooser` dialog to let the user select PNG/JPG/GIF.
+2. **Seamless Text Splitting (for `Ctrl + V`)**:
+   - If user is typing in paragraph `i`:
+     - Text before cursor stays in paragraph `i`.
+     - Image block inserted at `i + 1`.
+     - Text after cursor (or new empty paragraph) created at `i + 2`.
+     - Auto-focus set on text block `i + 2`.
 
----
-
-## 4. Notebook Plain-Page Refactoring (In Pure JavaFX)
-
-Incorporating the user's specific notebook requirements using pure JavaFX:
-
-1. **Top Action Buttons (`+ Text`, `+ Code`, `+ Image`, `+ Screenshot`)**:
-   - Placed in the top right header row without any enclosing grey box.
-   - Styled via `UITheme.applyUnboxedActionButton(button)`:
-     - No border, no permanent background box, smooth hover effect (`#f1f5f9`).
-2. **Single Continuous White Page**:
-   - `pagePlaygroundContainer` and `blocksContainer` set to pure white (`#ffffff`), with transparent scrollpane.
-3. **Default Text Mode**:
-   - Text blocks configured via `UITheme.makeBorderlessTextArea(textArea)`:
-     - No borders, no inset shadow, no focus outlines.
-     - Text renders seamlessly like typing directly on paper.
-     - Hover bar with `▲`, `▼`, `🗑️` reorder/remove controls.
-4. **Subtle Light Code Snippet Box**:
-   - White background (`#ffffff`), 1px faint border (`#e2e8f0`), rounded corners (`8px`).
-   - Top action bar right above the code box:
-     - `✏️ Edit`: Language selection dropdown.
-     - `📋 Copy`: Quick copy button with feedback transition.
-     - `▲` / `▼`: Move up / down.
-     - `🗑️ Remove`: Delete block.
-5. **Pure Frameless Image & Screenshot Insertion**:
-   - Raw `ImageView` placed directly on the white canvas with zero card padding or outline border.
-   - Top action bar right above the image:
-     - `✏️ Edit`: Replace image or update caption.
-     - `🔍 Open Full`: View full-size image in default desktop viewer.
-     - `▲` / `▼`: Move up / down.
-     - `🗑️ Remove`: Delete image.
+### C. Click-to-Action on Image Blocks (`createImageBlockNode`)
+- Media container starts with `actionBar.setVisible(false)` and `actionBar.setManaged(false)`.
+- When user clicks on the `ImageView`:
+  - Toggle `actionBar`:
+    - `📋 Copy`:
+      - Copies the image file / FX image to system clipboard.
+      - Temporarily changes text to `✓ Copied!`.
+    - `🗑 Remove`:
+      - Deletes the block from `currentPageBlocks`, saves, and refreshes the canvas.
+    - `🔍 Open Full`:
+      - Opens in default system image viewer.
+- When clicking on text or another area, the action bar deselects and hides.
 
 ---
 
-## 5. Migration Execution Steps
+## 4. Modified Files & Components
 
-### Step 1: Create `com.example.study_buddy.UITheme.java`
-- Implement all styling methods, colors, and dynamic hover/focus handlers in pure JavaFX.
+| Target File | Changes |
+|---|---|
+| [HelloController.java](file:///c:/Users/User/IdeaProjects/Study_Buddy/src/main/java/com/example/study_buddy/HelloController.java) | - Re-architect header: inline page name title + divider + date/time + single `+ Image` button.<br>- Implement `handleSmartImageOrScreenshot()` supporting clipboard screenshot paste and file dialog fallback.<br>- Implement `Ctrl + V` key interceptor on text areas.<br>- Implement click-to-show `📋 Copy` and `🗑 Remove` action bar on images.<br>- Auto-focus text writing area on page open. |
+| [styles.css](file:///c:/Users/User/IdeaProjects/Study_Buddy/src/main/resources/com/example/study_buddy/styles.css) | - Add styles for the floating image action bar and clean OneNote header styling. |
+| [implementation.md](file:///c:/Users/User/IdeaProjects/Study_Buddy/implementation.md) | - Document the OneNote document design, single `+ Image` button, and click-to-action media behavior. |
 
-### Step 2: Update `LoginController.java` & `login-view.fxml`
-- Remove `stylesheets="@styles.css"` and `styleClass` references from `login-view.fxml`.
-- Call `UITheme` helper methods during `initialize()` to style brand panel, inputs, and buttons.
+---
 
-### Step 3: Update `HelloController.java` & `hello-view.fxml`
-- Remove `stylesheets="@styles.css"` and `styleClass` references from `hello-view.fxml`.
-- Replace all `getStyleClass().add(...)` calls with corresponding `UITheme` methods for:
-  - Navigation bar, top toolbar, and toggle buttons.
-  - Courses & Progress view (cards, badges, 3-dot menus, chapter cards).
-  - Quizzes view (question cards, MCQ option cards, result banner).
-  - Calendar view (day cells, headers, badges, task pills).
-  - Tasks & Deadlines sidebar.
-- Implement the refined **plain-page notebook layout** in `HelloController.java` using `UITheme`.
+## 5. Verification Plan
 
-### Step 4: Delete `src/main/resources/com/example/study_buddy/styles.css`
-- Safely remove the external CSS file from the project.
-
-### Step 5: Verification & Testing
-- Run `$env:JAVA_HOME = "C:\Users\User\.jdks\ms-21.0.12"; .\mvnw.cmd test` to ensure all 29 tests pass.
-- Verify UI flows (Login, Main Menu, Notebook, Courses, Quizzes, Calendar).
+1. **Automated Unit Tests**:
+   - Run `$env:JAVA_HOME = "C:\Users\User\.jdks\ms-21.0.12"; .\mvnw.cmd test` to ensure all 29 tests pass.
+2. **Interactive UI Verification**:
+   - Open a page: Confirm the inline title displays the page name with a thin underline and date/time beneath.
+   - Confirm only the `🖼 + Image` button is present at the top (no code, no separate screenshot button).
+   - Type text, press `Ctrl + V` with a copied screenshot: verify it embeds inline and creates a new focused text area below.
+   - Click the image: verify the `📋 Copy` and `🗑 Remove` options appear.
+   - Click `📋 Copy`: verify image is copied back to clipboard.
+   - Click `🗑 Remove`: verify image is deleted cleanly.
