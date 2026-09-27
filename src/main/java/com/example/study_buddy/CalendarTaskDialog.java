@@ -39,18 +39,18 @@ public class CalendarTaskDialog {
         VBox root = new VBox(14);
         root.setPadding(new Insets(22));
         root.setPrefWidth(440);
-        root.setStyle("-fx-background-color: #ffffff; -fx-font-family: 'Segoe UI', Arial, sans-serif;");
+        root.setStyle("-fx-background-color: #fcf9f2; -fx-font-family: 'Segoe UI', Arial, sans-serif;");
 
         // Header
         HBox header = new HBox(8);
         header.setAlignment(Pos.CENTER_LEFT);
 
         Label headerTitle = new Label(isEditing ? "Edit Task / Activity ✏️" : "Add Task / Activity 📅");
-        headerTitle.setStyle("-fx-font-size: 17px; -fx-font-weight: bold; -fx-text-fill: #1e293b;");
+        headerTitle.setStyle("-fx-font-size: 17px; -fx-font-weight: bold; -fx-text-fill: #1c2a18;");
         HBox.setHgrow(headerTitle, Priority.ALWAYS);
 
         Button closeBtn = new Button("✕");
-        closeBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #94a3b8; -fx-font-size: 14px; -fx-cursor: hand; -fx-padding: 0 4px;");
+        closeBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #71816c; -fx-font-size: 14px; -fx-cursor: hand; -fx-padding: 0 4px;");
         closeBtn.setOnAction(e -> dialog.close());
 
         header.getChildren().addAll(headerTitle, closeBtn);
@@ -67,24 +67,24 @@ public class CalendarTaskDialog {
         VBox typeBox = new VBox(5);
         typeBox.setPrefWidth(180);
         Label typeLabel = new Label("Activity Type:");
-        typeLabel.setStyle("-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #334155;");
+        typeLabel.setStyle("-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #4b5c46;");
         ComboBox<String> typeCombo = new ComboBox<>();
         typeCombo.getItems().addAll("CT", "Assignment", "Quiz", "Project", "Exam", "Lab Report", "Presentation", "Other");
         typeCombo.setValue(isEditing ? existingTask.getParsedCategory() : "CT");
         typeCombo.setMaxWidth(Double.MAX_VALUE);
-        typeCombo.setStyle("-fx-padding: 4px; -fx-background-radius: 6px; -fx-border-color: #cbd5e1; -fx-border-radius: 6px;");
+        typeCombo.setStyle("-fx-padding: 4px; -fx-background-color: #ffffff; -fx-background-radius: 6px; -fx-border-color: #dcd3c3; -fx-border-radius: 6px;");
         typeBox.getChildren().addAll(typeLabel, typeCombo);
 
         VBox subjectBox = new VBox(5);
         HBox.setHgrow(subjectBox, Priority.ALWAYS);
         Label subjectLabel = new Label("Subject / Course:");
-        subjectLabel.setStyle("-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #334155;");
+        subjectLabel.setStyle("-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #4b5c46;");
         TextField subjectField = new TextField();
         subjectField.setPromptText("e.g. Math 2207");
         if (isEditing && existingTask.getSubjectName() != null && !existingTask.getSubjectName().equals("General")) {
             subjectField.setText(existingTask.getSubjectName());
         }
-        subjectField.setStyle("-fx-padding: 7px 10px; -fx-background-radius: 6px; -fx-border-color: #cbd5e1; -fx-border-radius: 6px;");
+        subjectField.setStyle("-fx-padding: 7px 10px; -fx-background-color: #ffffff; -fx-background-radius: 6px; -fx-border-color: #dcd3c3; -fx-border-radius: 6px;");
         subjectBox.getChildren().addAll(subjectLabel, subjectField);
 
         typeSubjectRow.getChildren().addAll(typeBox, subjectBox);
@@ -92,13 +92,13 @@ public class CalendarTaskDialog {
         // 2. Task Title / Details
         VBox titleBox = new VBox(5);
         Label titleLabel = new Label("Task Title / Details:");
-        titleLabel.setStyle("-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #334155;");
+        titleLabel.setStyle("-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #4b5c46;");
         TextField titleField = new TextField();
         titleField.setPromptText("e.g. CT 1 (Chapters 1 - 3)");
         if (isEditing) {
             titleField.setText(existingTask.getParsedTitle());
         }
-        titleField.setStyle("-fx-padding: 7px 10px; -fx-background-radius: 6px; -fx-border-color: #cbd5e1; -fx-border-radius: 6px;");
+        titleField.setStyle("-fx-padding: 7px 10px; -fx-background-color: #ffffff; -fx-background-radius: 6px; -fx-border-color: #dcd3c3; -fx-border-radius: 6px;");
         titleBox.getChildren().addAll(titleLabel, titleField);
 
         // 3. Date & Time Row
@@ -111,22 +111,22 @@ public class CalendarTaskDialog {
         VBox dateBox = new VBox(5);
         dateBox.setPrefWidth(200);
         Label dateLabel = new Label("Deadline Date:");
-        dateLabel.setStyle("-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #334155;");
+        dateLabel.setStyle("-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #4b5c46;");
         DatePicker datePicker = new DatePicker(initialDate);
         datePicker.setMaxWidth(Double.MAX_VALUE);
-        datePicker.setStyle("-fx-background-radius: 6px; -fx-border-color: #cbd5e1; -fx-border-radius: 6px;");
+        datePicker.setStyle("-fx-background-color: #ffffff; -fx-background-radius: 6px; -fx-border-color: #dcd3c3; -fx-border-radius: 6px;");
         dateBox.getChildren().addAll(dateLabel, datePicker);
 
         VBox timeBox = new VBox(5);
         HBox.setHgrow(timeBox, Priority.ALWAYS);
         Label timeLabel = new Label("Time:");
-        timeLabel.setStyle("-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #334155;");
+        timeLabel.setStyle("-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #4b5c46;");
         ComboBox<String> timeCombo = new ComboBox<>();
         timeCombo.setEditable(true);
         timeCombo.getItems().addAll("11:59 PM", "11:30 PM", "05:00 PM", "02:00 PM", "12:00 PM", "10:00 AM", "08:30 AM");
         timeCombo.setValue(isEditing && existingTask.getFormattedTime() != null ? existingTask.getFormattedTime() : "11:59 PM");
         timeCombo.setMaxWidth(Double.MAX_VALUE);
-        timeCombo.setStyle("-fx-padding: 4px; -fx-background-radius: 6px; -fx-border-color: #cbd5e1; -fx-border-radius: 6px;");
+        timeCombo.setStyle("-fx-padding: 4px; -fx-background-color: #ffffff; -fx-background-radius: 6px; -fx-border-color: #dcd3c3; -fx-border-radius: 6px;");
         timeBox.getChildren().addAll(timeLabel, timeCombo);
 
         dateTimeRow.getChildren().addAll(dateBox, timeBox);
@@ -134,13 +134,13 @@ public class CalendarTaskDialog {
         // 4. Notes (Optional)
         VBox notesBox = new VBox(5);
         Label notesLabel = new Label("Notes / Instructions (optional):");
-        notesLabel.setStyle("-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #334155;");
+        notesLabel.setStyle("-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #4b5c46;");
         TextField notesField = new TextField();
         notesField.setPromptText("e.g. Bring calculator and graph paper");
         if (isEditing && existingTask.getNotes() != null) {
             notesField.setText(existingTask.getNotes());
         }
-        notesField.setStyle("-fx-padding: 7px 10px; -fx-background-radius: 6px; -fx-border-color: #cbd5e1; -fx-border-radius: 6px;");
+        notesField.setStyle("-fx-padding: 7px 10px; -fx-background-color: #ffffff; -fx-background-radius: 6px; -fx-border-color: #dcd3c3; -fx-border-radius: 6px;");
         notesBox.getChildren().addAll(notesLabel, notesField);
 
         // 5. Action Buttons
@@ -149,11 +149,11 @@ public class CalendarTaskDialog {
         buttonBar.setPadding(new Insets(10, 0, 0, 0));
 
         Button cancelBtn = new Button("Cancel");
-        cancelBtn.setStyle("-fx-background-color: #f1f5f9; -fx-text-fill: #64748b; -fx-font-weight: bold; -fx-background-radius: 6px; -fx-padding: 8px 16px; -fx-cursor: hand;");
+        cancelBtn.setStyle("-fx-background-color: #f0e8dc; -fx-text-fill: #4b5c46; -fx-font-weight: bold; -fx-background-radius: 8px; -fx-padding: 8px 16px; -fx-cursor: hand;");
         cancelBtn.setOnAction(e -> dialog.close());
 
         Button saveBtn = new Button(isEditing ? "Update Task" : "Save Task");
-        saveBtn.setStyle("-fx-background-color: #4f46e5; -fx-text-fill: #ffffff; -fx-font-weight: bold; -fx-background-radius: 6px; -fx-padding: 8px 20px; -fx-cursor: hand;");
+        AppTheme.applyPrimaryButton(saveBtn);
         saveBtn.setOnAction(e -> {
             String actType = typeCombo.getValue() != null ? typeCombo.getValue().trim() : "Task";
             String subject = subjectField.getText().trim();

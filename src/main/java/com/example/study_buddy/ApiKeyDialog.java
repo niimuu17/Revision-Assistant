@@ -28,7 +28,7 @@ public class ApiKeyDialog {
 
         VBox root = new VBox(16);
         root.setPadding(new Insets(24));
-        root.setStyle("-fx-background-color: #ffffff; -fx-font-family: 'Segoe UI', system-ui, sans-serif;");
+        root.setStyle("-fx-background-color: #fcf9f2; -fx-font-family: 'Segoe UI', system-ui, sans-serif;");
         root.setPrefWidth(460);
 
         // Header
@@ -38,9 +38,9 @@ public class ApiKeyDialog {
         icon.setStyle("-fx-font-size: 24px;");
         VBox titleBox = new VBox(3);
         Label title = new Label("Gemini API Key Settings");
-        title.setStyle("-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #1e293b;");
+        title.setStyle("-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #1c2a18;");
         Label subtitle = new Label("Required for AI quiz generation and automated short answer grading.");
-        subtitle.setStyle("-fx-font-size: 11px; -fx-text-fill: #64748b;");
+        subtitle.setStyle("-fx-font-size: 11px; -fx-text-fill: #71816c;");
         titleBox.getChildren().addAll(title, subtitle);
         header.getChildren().addAll(icon, titleBox);
 
@@ -62,16 +62,16 @@ public class ApiKeyDialog {
         // Input field
         VBox inputSection = new VBox(6);
         Label inputLabel = new Label("Enter or Update API Key:");
-        inputLabel.setStyle("-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #334155;");
+        inputLabel.setStyle("-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #4b5c46;");
 
         PasswordField keyInput = new PasswordField();
         keyInput.setPromptText("Paste your AI Studio key here (AIzaSy...)");
         keyInput.setText(ApiKeyManager.getApiKey());
-        keyInput.setStyle("-fx-background-color: #f8fafc; -fx-border-color: #cbd5e1; -fx-border-radius: 6px; -fx-background-radius: 6px; -fx-padding: 8px 12px; -fx-font-size: 13px;");
+        keyInput.setStyle("-fx-background-color: #ffffff; -fx-border-color: #dcd3c3; -fx-border-radius: 6px; -fx-background-radius: 6px; -fx-padding: 8px 12px; -fx-font-size: 13px;");
 
         // Reveal toggle button
         CheckBox revealCheck = new CheckBox("Show key text");
-        revealCheck.setStyle("-fx-font-size: 11px; -fx-text-fill: #64748b;");
+        revealCheck.setStyle("-fx-font-size: 11px; -fx-text-fill: #71816c;");
         TextField plainInput = new TextField();
         plainInput.setStyle(keyInput.getStyle());
         plainInput.setManaged(false);
@@ -95,7 +95,7 @@ public class ApiKeyDialog {
 
         // Link to AI Studio
         Hyperlink aiStudioLink = new Hyperlink("Get a Free Gemini API Key from Google AI Studio ↗");
-        aiStudioLink.setStyle("-fx-font-size: 11px; -fx-text-fill: #4f46e5;");
+        aiStudioLink.setStyle("-fx-font-size: 11px; -fx-text-fill: #445a3c;");
         aiStudioLink.setOnAction(e -> {
             try {
                 if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
@@ -114,11 +114,11 @@ public class ApiKeyDialog {
         buttonBar.setPadding(new Insets(10, 0, 0, 0));
 
         Button cancelBtn = new Button("Cancel");
-        cancelBtn.setStyle("-fx-background-color: #f1f5f9; -fx-text-fill: #475569; -fx-font-weight: bold; -fx-background-radius: 6px; -fx-padding: 8px 16px; -fx-cursor: hand;");
+        cancelBtn.setStyle("-fx-background-color: #f0e8dc; -fx-text-fill: #4b5c46; -fx-font-weight: bold; -fx-background-radius: 8px; -fx-padding: 8px 16px; -fx-cursor: hand;");
         cancelBtn.setOnAction(e -> dialog.close());
 
         Button saveBtn = new Button("Save API Key");
-        saveBtn.setStyle("-fx-background-color: #4f46e5; -fx-text-fill: #ffffff; -fx-font-weight: bold; -fx-background-radius: 6px; -fx-padding: 8px 20px; -fx-cursor: hand;");
+        AppTheme.applyPrimaryButton(saveBtn);
         saveBtn.setOnAction(e -> {
             String enteredKey = revealCheck.isSelected() ? plainInput.getText() : keyInput.getText();
             ApiKeyManager.setApiKey(enteredKey != null ? enteredKey.trim() : "");

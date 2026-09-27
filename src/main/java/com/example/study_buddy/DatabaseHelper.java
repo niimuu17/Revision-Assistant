@@ -76,7 +76,7 @@ public class DatabaseHelper {
                 + "user_id INTEGER NOT NULL, "
                 + "title TEXT NOT NULL, "
                 + "description TEXT, "
-                + "color_hex TEXT DEFAULT '#4f46e5', "
+                + "color_hex TEXT DEFAULT '#445a3c', "
                 + "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "
                 + "updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "
                 + "FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE"
@@ -751,7 +751,7 @@ public class DatabaseHelper {
             pstmt.setInt(1, userId);
             pstmt.setString(2, title.trim());
             pstmt.setString(3, description != null ? description.trim() : "");
-            pstmt.setString(4, (colorHex != null && !colorHex.isEmpty()) ? colorHex : "#4f46e5");
+            pstmt.setString(4, (colorHex != null && !colorHex.isEmpty()) ? colorHex : "#445a3c");
             pstmt.executeUpdate();
             try (ResultSet rs = pstmt.getGeneratedKeys()) {
                 if (rs.next()) {

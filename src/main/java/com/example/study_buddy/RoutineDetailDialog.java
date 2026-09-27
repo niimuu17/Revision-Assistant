@@ -30,32 +30,32 @@ public class RoutineDetailDialog {
 
         VBox root = new VBox(14);
         root.setPadding(new Insets(20));
-        root.setStyle("-fx-background-color: #ffffff; -fx-font-family: 'Segoe UI', Arial, sans-serif;");
+        root.setStyle("-fx-background-color: #fcf9f2; -fx-font-family: 'Segoe UI', Arial, sans-serif;");
         root.setPrefWidth(560);
 
         // 1. Header
         Label headerTitle = new Label("Class Details 🎓");
-        headerTitle.setStyle("-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #1e293b;");
+        headerTitle.setStyle("-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #1c2a18;");
 
         Label headerSubtitle = new Label(dayOfWeek + " | " + timeSlot);
-        headerSubtitle.setStyle("-fx-font-size: 13px; -fx-text-fill: #6366f1; -fx-font-weight: bold;");
+        headerSubtitle.setStyle("-fx-font-size: 13px; -fx-text-fill: #445a3c; -fx-font-weight: bold;");
 
         // 2. Subject Name field
         Label subjectLabel = new Label("Subject Name:");
-        subjectLabel.setStyle("-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #334155;");
+        subjectLabel.setStyle("-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #4b5c46;");
         TextField subjectField = new TextField();
         subjectField.setPromptText("e.g. CSE2008");
-        subjectField.setStyle("-fx-padding: 8px 10px; -fx-background-radius: 6px; -fx-border-radius: 6px; -fx-border-color: #cbd5e1;");
+        subjectField.setStyle("-fx-padding: 8px 10px; -fx-background-color: #ffffff; -fx-background-radius: 6px; -fx-border-radius: 6px; -fx-border-color: #dcd3c3;");
         if (existingSlot != null && existingSlot.getSubjectName() != null) {
             subjectField.setText(existingSlot.getSubjectName());
         }
 
         // 3. Teacher Code field
         Label teacherLabel = new Label("Teacher Code (up to 4 letters):");
-        teacherLabel.setStyle("-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #334155;");
+        teacherLabel.setStyle("-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #4b5c46;");
         TextField teacherField = new TextField();
         teacherField.setPromptText("e.g. SH");
-        teacherField.setStyle("-fx-padding: 8px 10px; -fx-background-radius: 6px; -fx-border-radius: 6px; -fx-border-color: #cbd5e1;");
+        teacherField.setStyle("-fx-padding: 8px 10px; -fx-background-color: #ffffff; -fx-background-radius: 6px; -fx-border-radius: 6px; -fx-border-color: #dcd3c3;");
         if (existingSlot != null && existingSlot.getTeacherCode() != null) {
             teacherField.setText(existingSlot.getTeacherCode());
         }
@@ -66,7 +66,7 @@ public class RoutineDetailDialog {
         buttonBar.setPadding(new Insets(10, 0, 0, 0));
 
         Button cancelBtn = new Button("Cancel");
-        cancelBtn.setStyle("-fx-background-color: #f1f5f9; -fx-text-fill: #64748b; -fx-font-weight: bold; -fx-background-radius: 6px; -fx-padding: 8px 16px; -fx-cursor: hand;");
+        cancelBtn.setStyle("-fx-background-color: #f0e8dc; -fx-text-fill: #4b5c46; -fx-font-weight: bold; -fx-background-radius: 8px; -fx-padding: 8px 16px; -fx-cursor: hand;");
         cancelBtn.setOnAction(e -> dialog.close());
 
         Button clearBtn = new Button("Clear Class");
@@ -78,7 +78,7 @@ public class RoutineDetailDialog {
         });
 
         Button saveBtn = new Button("Save Class Details");
-        saveBtn.setStyle("-fx-background-color: #4f46e5; -fx-text-fill: #ffffff; -fx-font-weight: bold; -fx-background-radius: 6px; -fx-padding: 8px 18px; -fx-cursor: hand;");
+        AppTheme.applyPrimaryButton(saveBtn);
         saveBtn.setOnAction(e -> {
             String subject = subjectField.getText().trim();
             String teacher = teacherField.getText().trim();

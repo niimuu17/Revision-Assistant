@@ -61,6 +61,9 @@ import javafx.stage.FileChooser;
  */
 public class HelloController {
 
+    @FXML private VBox mainRootContainer;
+    @FXML private Label formTitleLabel;
+    @FXML private Label recentNotebooksLabel;
     @FXML private Label welcomeText;
     @FXML private Label userDetailText;
     @FXML private Button logoutButton;
@@ -240,7 +243,32 @@ public class HelloController {
             });
         }
         setupQuizViewDefaults();
+        applyAppTheme();
         handleOpenMainMenu();
+    }
+
+    private void applyAppTheme() {
+        AppTheme.applyDashboardTheme(
+                mainRootContainer,
+                appTopBar,
+                leftToggleBtn,
+                rightToggleBtn,
+                formTitleLabel,
+                welcomeText,
+                userDetailText,
+                mainMenuView,
+                recentNotebooksLabel,
+                myNotebooksBtn,
+                newNotebookBtn,
+                leftSidebar,
+                rightSidebar,
+                navHomeBtn,
+                navRoutineBtn,
+                navCalendarBtn,
+                navQuizBtn,
+                navProgressBtn,
+                logoutButton
+        );
     }
 
     /**
@@ -371,23 +399,11 @@ public class HelloController {
     }
 
     private void updateNavActiveState(Button activeButton) {
-        if (navHomeBtn != null) {
-            navHomeBtn.getStyleClass().remove("nav-item-active");
-        }
-        if (navRoutineBtn != null) {
-            navRoutineBtn.getStyleClass().remove("nav-item-active");
-        }
-        if (navCalendarBtn != null) {
-            navCalendarBtn.getStyleClass().remove("nav-item-active");
-        }
-        if (navQuizBtn != null) {
-            navQuizBtn.getStyleClass().remove("nav-item-active");
-        }
-        if (navProgressBtn != null) {
-            navProgressBtn.getStyleClass().remove("nav-item-active");
-        }
-        if (activeButton != null && !activeButton.getStyleClass().contains("nav-item-active")) {
-            activeButton.getStyleClass().add("nav-item-active");
+        Button[] navButtons = {navHomeBtn, navRoutineBtn, navCalendarBtn, navQuizBtn, navProgressBtn};
+        for (Button btn : navButtons) {
+            if (btn != null) {
+                AppTheme.applyNavItem(btn, btn == activeButton);
+            }
         }
     }
 
@@ -571,6 +587,8 @@ public class HelloController {
 
             card.getChildren().addAll(topRow, titleLabel);
 
+            AppTheme.applyCourseCard(card, codeLabel, titleLabel, dotsBtn);
+
             card.setOnMouseClicked(e -> openCourseProgressDetail(c));
 
             card.setOnContextMenuRequested(ev -> {
@@ -583,11 +601,11 @@ public class HelloController {
         if (courses.isEmpty()) {
             VBox emptyPrompt = new VBox(12);
             emptyPrompt.setAlignment(Pos.CENTER);
-            emptyPrompt.setStyle("-fx-padding: 40px; -fx-background-color: #f8fafc; -fx-background-radius: 12px; -fx-border-color: #e2e8f0; -fx-border-radius: 12px;");
+            emptyPrompt.setStyle("-fx-padding: 40px; -fx-background-color: #fcf9f2; -fx-background-radius: 14px; -fx-border-color: #e5dcce; -fx-border-radius: 14px; -fx-border-style: dashed;");
             Label emptyLbl = new Label("No courses added yet");
-            emptyLbl.setStyle("-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #64748b;");
+            emptyLbl.setStyle("-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #1c2a18;");
             Label emptySub = new Label("Click '+ Add Course' above to add your first academic course.");
-            emptySub.setStyle("-fx-font-size: 12px; -fx-text-fill: #94a3b8;");
+            emptySub.setStyle("-fx-font-size: 12px; -fx-text-fill: #71816c;");
             emptyPrompt.getChildren().addAll(emptyLbl, emptySub);
             coursesGrid.getChildren().add(emptyPrompt);
         }
@@ -622,16 +640,16 @@ public class HelloController {
 
         for (SyllabusChapter ch : chapters) {
             VBox chapterCard = new VBox(8);
-            chapterCard.getStyleClass().add("chapter-card");
+            chapterCard.setStyle("-fx-background-color: #fcf9f2; -fx-padding: 12px; -fx-background-radius: 10px; -fx-border-color: #d8e2d4; -fx-border-radius: 10px;");
 
             HBox header = new HBox(8);
             header.setAlignment(Pos.CENTER_LEFT);
             Label chapNum = new Label("Chapter " + ch.getChapterNumber() + ": " + ch.getTitle());
-            chapNum.setStyle("-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #1e293b;");
+            chapNum.setStyle("-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #1c2a18;");
             Region sp = new Region();
             HBox.setHgrow(sp, Priority.ALWAYS);
             Label countBadge = new Label(ch.getCompletedTopicsCount() + "/" + ch.getTotalTopicsCount());
-            countBadge.setStyle("-fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: #4f46e5; -fx-background-color: #e0e7ff; -fx-padding: 2px 7px; -fx-background-radius: 6px;");
+            countBadge.setStyle("-fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: #2c3f26; -fx-background-color: #d8e2d4; -fx-padding: 2px 7px; -fx-background-radius: 6px;");
             header.getChildren().addAll(chapNum, sp, countBadge);
 
             VBox topicsList = new VBox(4);
@@ -646,7 +664,7 @@ public class HelloController {
                 CheckBox cb = new CheckBox();
                 cb.setSelected(topic.isCompleted());
                 Label topicLbl = new Label(topic.getTitle());
-                topicLbl.setStyle("-fx-font-size: 12px; -fx-text-fill: " + (topic.isCompleted() ? "#64748b; -fx-font-style: italic;" : "#1e293b;"));
+                topicLbl.setStyle("-fx-font-size: 12px; -fx-text-fill: " + (topic.isCompleted() ? "#71816c; -fx-font-style: italic;" : "#1c2a18;"));
 
                 cb.setOnAction(e -> {
                     boolean isChecked = cb.isSelected();
@@ -696,22 +714,22 @@ public class HelloController {
         for (AcademicMark m : marks) {
             HBox chip = new HBox(8);
             chip.setAlignment(Pos.CENTER_LEFT);
-            chip.getStyleClass().add("mark-chip");
+            chip.setStyle("-fx-background-color: #fcf9f2; -fx-padding: 8px 12px; -fx-background-radius: 8px; -fx-border-color: #d8e2d4; -fx-border-radius: 8px;");
 
             Label typeBadge = new Label(m.getAssessmentType());
-            typeBadge.setStyle("-fx-font-size: 10px; -fx-font-weight: bold; -fx-background-color: #e0e7ff; -fx-text-fill: #4338ca; -fx-padding: 2px 6px; -fx-background-radius: 4px;");
+            typeBadge.setStyle("-fx-font-size: 10px; -fx-font-weight: bold; -fx-background-color: #d8e2d4; -fx-text-fill: #2c3f26; -fx-padding: 2px 6px; -fx-background-radius: 4px;");
 
             Label nameLbl = new Label(m.getAssessmentName());
-            nameLbl.setStyle("-fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: #1e293b;");
+            nameLbl.setStyle("-fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: #1c2a18;");
 
             Region sp = new Region();
             HBox.setHgrow(sp, Priority.ALWAYS);
 
             Label scoreLbl = new Label(String.format("%.1f/%.1f (%.0f%%)", m.getObtainedMarks(), m.getTotalMarks(), m.getPercentage()));
-            scoreLbl.setStyle("-fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: #059669;");
+            scoreLbl.setStyle("-fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: #445a3c;");
 
             Button delBtn = new Button("✕");
-            delBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #94a3b8; -fx-font-size: 10px; -fx-cursor: hand; -fx-padding: 0 4px;");
+            delBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #71816c; -fx-font-size: 10px; -fx-cursor: hand; -fx-padding: 0 4px;");
             delBtn.setOnAction(e -> {
                 DatabaseHelper.deleteAcademicMark(m.getId());
                 loadCourseMarks(courseId);
@@ -734,7 +752,7 @@ public class HelloController {
 
         if (marks.isEmpty()) {
             Label noMarks = new Label("No marks added. Click '➕ Add Marks' above.");
-            noMarks.setStyle("-fx-font-size: 11px; -fx-text-fill: #94a3b8; -fx-font-style: italic;");
+            noMarks.setStyle("-fx-font-size: 11px; -fx-text-fill: #71816c; -fx-font-style: italic;");
             marksListContainer.getChildren().add(noMarks);
         }
     }
@@ -1264,20 +1282,20 @@ public class HelloController {
             final QuizQuestion q = questions.get(i);
 
             VBox card = new VBox(12);
-            card.getStyleClass().add("quiz-question-card");
+            card.setStyle("-fx-background-color: #fcf9f2; -fx-padding: 16px; -fx-background-radius: 12px; -fx-border-color: #d8e2d4; -fx-border-radius: 12px;");
 
             // Header row: Question Number & Badge
             HBox cardHeader = new HBox(10);
             cardHeader.setAlignment(Pos.CENTER_LEFT);
 
             Label qNumLabel = new Label("Question " + (qIndex + 1) + " of " + questions.size());
-            qNumLabel.setStyle("-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #1e293b;");
+            qNumLabel.setStyle("-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #1c2a18;");
 
             Region spacer = new Region();
             HBox.setHgrow(spacer, Priority.ALWAYS);
 
             Label badge = new Label(q.getType() == QuizQuestion.QuestionType.MCQ ? "Multiple Choice (1 pt)" : "Short Answer (5 pts)");
-            badge.getStyleClass().add("quiz-badge");
+            badge.setStyle("-fx-background-color: #d8e2d4; -fx-text-fill: #2c3f26; -fx-font-size: 11px; -fx-font-weight: bold; -fx-background-radius: 6px; -fx-padding: 3px 8px;");
 
             cardHeader.getChildren().addAll(qNumLabel, spacer, badge);
 
@@ -1286,7 +1304,7 @@ public class HelloController {
             Label promptLabel = new Label();
             promptLabel.setWrapText(true);
             promptLabel.setMinHeight(Region.USE_PREF_SIZE);
-            promptLabel.setStyle("-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #334155;");
+            promptLabel.setStyle("-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #1c2a18;");
             promptLabel.prefWidthProperty().bind(card.widthProperty().subtract(40));
 
             card.getChildren().addAll(cardHeader, promptLabel);
@@ -1298,7 +1316,7 @@ public class HelloController {
                 promptLabel.setText(excerpt);
 
                 Button seeMoreBtn = new Button("See More ▾");
-                seeMoreBtn.getStyleClass().add("quiz-see-more-btn");
+                seeMoreBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #445a3c; -fx-font-size: 11px; -fx-font-weight: bold; -fx-cursor: hand; -fx-padding: 2px 4px;");
                 boolean[] isExpanded = new boolean[]{false};
                 seeMoreBtn.setOnAction(e -> {
                     if (!isExpanded[0]) {
@@ -1336,14 +1354,14 @@ public class HelloController {
 
                     HBox optCard = new HBox(10);
                     optCard.setAlignment(Pos.CENTER_LEFT);
-                    optCard.getStyleClass().add("quiz-mcq-card");
+                    optCard.setStyle("-fx-background-color: #f1eae0; -fx-border-color: #d8e2d4; -fx-border-radius: 8px; -fx-background-radius: 8px; -fx-padding: 10px 12px; -fx-cursor: hand;");
 
                     Label letter = new Label(QuizQuestion.getOptionLetter(currentOptIdx));
-                    letter.getStyleClass().add("quiz-option-letter");
+                    letter.setStyle("-fx-background-color: #d8e2d4; -fx-text-fill: #2c3f26; -fx-font-weight: bold; -fx-background-radius: 6px; -fx-padding: 3px 8px; -fx-font-size: 12px;");
 
                     Label text = new Label(optionText);
                     text.setWrapText(true);
-                    text.setStyle("-fx-font-size: 13px; -fx-text-fill: #1e293b;");
+                    text.setStyle("-fx-font-size: 13px; -fx-text-fill: #1c2a18;");
                     HBox.setHgrow(text, Priority.ALWAYS);
 
                     optCard.getChildren().addAll(letter, text);
@@ -1357,23 +1375,11 @@ public class HelloController {
                             HBox box = optionCardBoxes.get(k);
                             Label l = (Label) box.getChildren().get(0);
                             if (k == currentOptIdx) {
-                                box.getStyleClass().remove("quiz-mcq-card");
-                                if (!box.getStyleClass().contains("quiz-mcq-card-selected")) {
-                                    box.getStyleClass().add("quiz-mcq-card-selected");
-                                }
-                                l.getStyleClass().remove("quiz-option-letter");
-                                if (!l.getStyleClass().contains("quiz-option-letter-selected")) {
-                                    l.getStyleClass().add("quiz-option-letter-selected");
-                                }
+                                box.setStyle("-fx-background-color: #d8e2d4; -fx-border-color: #445a3c; -fx-border-radius: 8px; -fx-background-radius: 8px; -fx-padding: 10px 12px; -fx-cursor: hand;");
+                                l.setStyle("-fx-background-color: #445a3c; -fx-text-fill: #ffffff; -fx-font-weight: bold; -fx-background-radius: 6px; -fx-padding: 3px 8px; -fx-font-size: 12px;");
                             } else {
-                                box.getStyleClass().remove("quiz-mcq-card-selected");
-                                if (!box.getStyleClass().contains("quiz-mcq-card")) {
-                                    box.getStyleClass().add("quiz-mcq-card");
-                                }
-                                l.getStyleClass().remove("quiz-option-letter-selected");
-                                if (!l.getStyleClass().contains("quiz-option-letter")) {
-                                    l.getStyleClass().add("quiz-option-letter");
-                                }
+                                box.setStyle("-fx-background-color: #f1eae0; -fx-border-color: #d8e2d4; -fx-border-radius: 8px; -fx-background-radius: 8px; -fx-padding: 10px 12px; -fx-cursor: hand;");
+                                l.setStyle("-fx-background-color: #d8e2d4; -fx-text-fill: #2c3f26; -fx-font-weight: bold; -fx-background-radius: 6px; -fx-padding: 3px 8px; -fx-font-size: 12px;");
                             }
                         }
                         updateQuizProgressStatus();
@@ -1390,13 +1396,13 @@ public class HelloController {
                 // Short Answer Input Area
                 VBox saBox = new VBox(6);
                 Label ansLabel = new Label("Your Response:");
-                ansLabel.setStyle("-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #64748b;");
+                ansLabel.setStyle("-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #71816c;");
 
                 TextArea saArea = new TextArea();
                 saArea.setPromptText("Type your detailed response here...");
                 saArea.setPrefRowCount(3);
                 saArea.setWrapText(true);
-                saArea.setStyle("-fx-background-color: #ffffff; -fx-border-color: #cbd5e1; -fx-border-radius: 6px; -fx-background-radius: 6px;");
+                saArea.setStyle("-fx-background-color: #ffffff; -fx-border-color: #d8e2d4; -fx-border-radius: 8px; -fx-background-radius: 8px; -fx-text-fill: #1c2a18;");
 
                 saArea.textProperty().addListener((obs, oldVal, newVal) -> {
                     q.setStudentAnswer(newVal);
@@ -1517,7 +1523,7 @@ public class HelloController {
 
         // Banner Card at top of questions container
         VBox banner = new VBox(10);
-        banner.getStyleClass().add("quiz-result-banner");
+        banner.setStyle("-fx-background-color: linear-gradient(to right, #445a3c, #526749); -fx-background-radius: 12px; -fx-padding: 18px 22px;");
 
         HBox bannerTop = new HBox(12);
         bannerTop.setAlignment(Pos.CENTER_LEFT);
@@ -1529,7 +1535,7 @@ public class HelloController {
         Label bannerTitle = new Label("Quiz Results: " + pct + "% (Grade " + grade + ")");
         bannerTitle.setStyle("-fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: #ffffff;");
         Label bannerSub = new Label(String.format("You scored %d out of %d total points.", totalEarned, totalMax));
-        bannerSub.setStyle("-fx-font-size: 13px; -fx-text-fill: #e0e7ff;");
+        bannerSub.setStyle("-fx-font-size: 13px; -fx-text-fill: #f0e8dc;");
         bannerTexts.getChildren().addAll(bannerTitle, bannerSub);
 
         Region spacer = new Region();
@@ -1576,17 +1582,18 @@ public class HelloController {
                             Integer optIdx = GridPane.getRowIndex(n) != null && GridPane.getColumnIndex(n) != null
                                     ? (GridPane.getRowIndex(n) * 2 + GridPane.getColumnIndex(n)) : null;
                             if (optIdx != null) {
-                                optBox.getStyleClass().removeAll("quiz-mcq-card-selected", "quiz-mcq-card");
                                 if (optIdx == q.getCorrectIndex()) {
-                                    optBox.getStyleClass().add("quiz-mcq-card-correct");
+                                    optBox.setStyle("-fx-background-color: #d8e2d4; -fx-border-color: #445a3c; -fx-border-width: 2px; -fx-background-radius: 8px; -fx-border-radius: 8px; -fx-padding: 10px 12px;");
                                     Label txt = (Label) optBox.getChildren().get(1);
                                     txt.setText(txt.getText() + "  ✓ (Correct Answer)");
-                                    txt.setStyle("-fx-font-size: 13px; -fx-text-fill: #065f46; -fx-font-weight: bold;");
+                                    txt.setStyle("-fx-font-size: 13px; -fx-text-fill: #1c2a18; -fx-font-weight: bold;");
                                 } else if (q.getUserSelectedOption() != null && optIdx.equals(q.getUserSelectedOption())) {
-                                    optBox.getStyleClass().add("quiz-mcq-card-incorrect");
+                                    optBox.setStyle("-fx-background-color: #fee2e2; -fx-border-color: #dc2626; -fx-border-width: 2px; -fx-background-radius: 8px; -fx-border-radius: 8px; -fx-padding: 10px 12px;");
                                     Label txt = (Label) optBox.getChildren().get(1);
                                     txt.setText(txt.getText() + "  ✕ (Your Answer)");
                                     txt.setStyle("-fx-font-size: 13px; -fx-text-fill: #991b1b;");
+                                } else {
+                                    optBox.setStyle("-fx-background-color: #f1eae0; -fx-border-color: #d8e2d4; -fx-background-radius: 8px; -fx-border-radius: 8px; -fx-padding: 10px 12px;");
                                 }
                             }
                         }
@@ -1622,12 +1629,12 @@ public class HelloController {
 
                 // AI Feedback Box
                 VBox fbBox = new VBox(6);
-                fbBox.getStyleClass().add("quiz-feedback-box");
+                fbBox.setStyle("-fx-background-color: #f1eae0; -fx-padding: 10px 12px; -fx-background-radius: 8px; -fx-border-color: #d8e2d4; -fx-border-radius: 8px;");
 
                 HBox fbHeader = new HBox(8);
                 fbHeader.setAlignment(Pos.CENTER_LEFT);
                 Label fbIcon = new Label("🤖 AI Feedback:");
-                fbIcon.setStyle("-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #065f46;");
+                fbIcon.setStyle("-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #445a3c;");
                 Region sp = new Region();
                 HBox.setHgrow(sp, Priority.ALWAYS);
                 Label scorePill = new Label("Score: " + q.getAwardedScore() + " / " + q.getMaxScore() + " pts");
@@ -1647,10 +1654,10 @@ public class HelloController {
 
                 if (isUnsubmitted) {
                     fbText.setText("No response was submitted.");
-                    fbText.setStyle("-fx-font-size: 12px; -fx-text-fill: #64748b; -fx-font-style: italic;");
+                    fbText.setStyle("-fx-font-size: 12px; -fx-text-fill: #71816c; -fx-font-style: italic;");
                 } else {
                     fbText.setText(q.getAiFeedback().isEmpty() ? "No feedback returned." : q.getAiFeedback());
-                    fbText.setStyle("-fx-font-size: 12px; -fx-text-fill: #1e293b;");
+                    fbText.setStyle("-fx-font-size: 12px; -fx-text-fill: #1c2a18;");
                 }
 
                 fbBox.getChildren().addAll(fbHeader, fbText);
@@ -1678,15 +1685,15 @@ public class HelloController {
      */
     private VBox createExpandableExplanationBox(String titleText, String fullContent, int threshold, Node parentCard) {
         VBox explBox = new VBox(6);
-        explBox.getStyleClass().add("quiz-explanation-box");
+        explBox.setStyle("-fx-background-color: #f1eae0; -fx-padding: 10px 12px; -fx-background-radius: 8px; -fx-border-color: #d8e2d4; -fx-border-radius: 8px;");
 
         Label explTitle = new Label(titleText);
-        explTitle.setStyle("-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #4338ca;");
+        explTitle.setStyle("-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #445a3c;");
 
         Label explText = new Label();
         explText.setWrapText(true);
         explText.setMinHeight(Region.USE_PREF_SIZE);
-        explText.setStyle("-fx-font-size: 12px; -fx-text-fill: #334155; -fx-line-spacing: 2px;");
+        explText.setStyle("-fx-font-size: 12px; -fx-text-fill: #1c2a18; -fx-line-spacing: 2px;");
         if (parentCard instanceof Region) {
             explText.prefWidthProperty().bind(((Region) parentCard).widthProperty().subtract(70));
         }
@@ -1700,7 +1707,7 @@ public class HelloController {
             explText.setText(excerpt);
 
             Button seeMoreBtn = new Button("See More ▾");
-            seeMoreBtn.getStyleClass().add("quiz-see-more-btn");
+            seeMoreBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #445a3c; -fx-font-size: 11px; -fx-font-weight: bold; -fx-cursor: hand; -fx-padding: 2px 4px;");
             boolean[] isExpanded = new boolean[]{false};
             seeMoreBtn.setOnAction(e -> {
                 if (!isExpanded[0]) {
@@ -1775,19 +1782,19 @@ public class HelloController {
             emptyPrompt.setAlignment(Pos.CENTER);
             emptyPrompt.setPadding(new Insets(36, 40, 36, 40));
             emptyPrompt.setPrefWidth(550);
-            emptyPrompt.setStyle("-fx-background-color: #f8fafc; -fx-background-radius: 12px; -fx-border-color: #e2e8f0; -fx-border-radius: 12px; -fx-border-style: dashed;");
+            emptyPrompt.setStyle("-fx-background-color: #fcf9f2; -fx-background-radius: 12px; -fx-border-color: #d8e2d4; -fx-border-radius: 12px; -fx-border-style: dashed;");
 
             Label emptyIcon = new Label("📚");
             emptyIcon.setStyle("-fx-font-size: 36px;");
 
             Label emptyTitle = new Label("No Notebooks Yet");
-            emptyTitle.setStyle("-fx-font-size: 17px; -fx-font-weight: bold; -fx-text-fill: #1e293b;");
+            emptyTitle.setStyle("-fx-font-size: 17px; -fx-font-weight: bold; -fx-text-fill: #1c2a18;");
 
             Label emptySub = new Label("Create your first notebook to organize topics, lecture slides, and notes.");
-            emptySub.setStyle("-fx-font-size: 13px; -fx-text-fill: #64748b;");
+            emptySub.setStyle("-fx-font-size: 13px; -fx-text-fill: #71816c;");
 
             Button createBtn = new Button("+ Create First Notebook");
-            createBtn.setStyle("-fx-background-color: #e0e7ff; -fx-text-fill: #4338ca; -fx-font-weight: bold; -fx-cursor: hand; -fx-background-radius: 6px; -fx-padding: 8px 16px;");
+            createBtn.setStyle("-fx-background-color: #445a3c; -fx-text-fill: #ffffff; -fx-font-weight: bold; -fx-cursor: hand; -fx-background-radius: 8px; -fx-padding: 8px 16px;");
             createBtn.setOnAction(e -> handleNewNotebook());
 
             emptyPrompt.getChildren().addAll(emptyIcon, emptyTitle, emptySub, createBtn);
@@ -1810,20 +1817,10 @@ public class HelloController {
         card.setPrefSize(224, 128);
         card.setMinSize(224, 128);
         card.setMaxSize(224, 128);
-        card.getStyleClass().add("notebook-card");
-
-        String themeColor = (notebook.getColorHex() != null && !notebook.getColorHex().isEmpty())
-                ? notebook.getColorHex() : "#4f46e5";
-
-        // Top Accent Stripe
-        Region accentStripe = new Region();
-        accentStripe.setPrefHeight(5);
-        accentStripe.setMinHeight(5);
-        accentStripe.setStyle("-fx-background-color: " + themeColor + "; -fx-background-radius: 10px 10px 0 0;");
 
         // Card Content Body
         VBox body = new VBox(6);
-        body.setPadding(new Insets(9, 11, 9, 11));
+        body.setPadding(new Insets(10, 12, 10, 12));
         VBox.setVgrow(body, Priority.ALWAYS);
 
         // Header Row: Color dot + Title (with right padding so it leaves space for the 3-dot button)
@@ -1832,17 +1829,14 @@ public class HelloController {
         headerRow.setPadding(new Insets(0, 24, 0, 0));
 
         Label dot = new Label("●");
-        dot.setStyle("-fx-font-size: 12px; -fx-text-fill: " + themeColor + ";");
 
         Label titleLabel = new Label(notebook.getTitle());
-        titleLabel.setStyle("-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #1e293b;");
         HBox.setHgrow(titleLabel, Priority.ALWAYS);
 
         headerRow.getChildren().addAll(dot, titleLabel);
 
         // Menu button (3 dots) pinned directly to top-right of the card
         Button optionsBtn = new Button("⋮");
-        optionsBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #64748b; -fx-font-size: 14px; -fx-font-weight: bold; -fx-padding: 0 4px; -fx-cursor: hand;");
         StackPane.setAlignment(optionsBtn, Pos.TOP_RIGHT);
         StackPane.setMargin(optionsBtn, new Insets(8, 8, 0, 0));
 
@@ -1876,7 +1870,6 @@ public class HelloController {
                 ? notebook.getDescription() : "No description provided.");
         descLabel.setWrapText(true);
         descLabel.setMaxHeight(26);
-        descLabel.setStyle("-fx-font-size: 11px; -fx-text-fill: #64748b;");
 
         Region spacer = new Region();
         VBox.setVgrow(spacer, Priority.ALWAYS);
@@ -1890,23 +1883,20 @@ public class HelloController {
         String statsText = topics + (topics == 1 ? " Topic" : " Topics") + " · "
                          + pages + (pages == 1 ? " Page" : " Pages");
         Label statsLabel = new Label(statsText);
-        statsLabel.setStyle("-fx-font-size: 10px; -fx-font-weight: bold; -fx-text-fill: #4338ca; "
-                + "-fx-background-color: #eef2ff; -fx-padding: 2px 6px; -fx-background-radius: 4px;");
 
         Region footerSpacer = new Region();
         HBox.setHgrow(footerSpacer, Priority.ALWAYS);
 
-        Label openArrow = new Label("Open ➜");
-        openArrow.setStyle("-fx-font-size: 10px; -fx-font-weight: bold; -fx-text-fill: #6366f1;");
+        Label openArrow = new Label("Open ➔");
 
         footer.getChildren().addAll(statsLabel, footerSpacer, openArrow);
 
         body.getChildren().addAll(headerRow, descLabel, spacer, footer);
 
-        VBox contentBox = new VBox();
-        contentBox.getChildren().addAll(accentStripe, body);
+        card.getChildren().addAll(body, optionsBtn);
 
-        card.getChildren().addAll(contentBox, optionsBtn);
+        // Apply pure JavaFX Earthy Matcha/Ivory theme
+        AppTheme.applyNotebookCard(card, dot, titleLabel, descLabel, statsLabel, openArrow, optionsBtn);
 
         // Card Click opens the notebook
         card.setOnMouseClicked(e -> {
@@ -2029,7 +2019,7 @@ public class HelloController {
                 toggleTopicsBtn.setStyle("");
             } else {
                 toggleTopicsBtn.setText("📂 Show Topics");
-                toggleTopicsBtn.setStyle("-fx-border-color: #6366f1; -fx-text-fill: #4338ca; -fx-background-color: #eef2ff;");
+                toggleTopicsBtn.setStyle("-fx-border-color: #3d5236; -fx-text-fill: #445a3c; -fx-background-color: #d8e2d4; -fx-font-weight: bold; -fx-background-radius: 8px;");
             }
         }
     }
@@ -2047,13 +2037,13 @@ public class HelloController {
             VBox emptyPrompt = new VBox(10);
             emptyPrompt.setAlignment(Pos.CENTER);
             emptyPrompt.setPadding(new Insets(24, 12, 24, 12));
-            emptyPrompt.setStyle("-fx-background-color: #ffffff; -fx-background-radius: 6px; -fx-border-color: #e2e8f0; -fx-border-radius: 6px; -fx-border-style: dashed;");
+            emptyPrompt.setStyle("-fx-background-color: #fcf9f2; -fx-background-radius: 8px; -fx-border-color: #e5dcce; -fx-border-radius: 8px; -fx-border-style: dashed;");
 
             Label emptyLabel = new Label("No topics yet");
-            emptyLabel.setStyle("-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #64748b;");
+            emptyLabel.setStyle("-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #1c2a18;");
 
             Button addTopicBtn = new Button("+ Add First Topic");
-            addTopicBtn.setStyle("-fx-background-color: #e0e7ff; -fx-text-fill: #4338ca; -fx-font-size: 11px; -fx-font-weight: bold; -fx-cursor: hand; -fx-background-radius: 4px; -fx-padding: 6px 12px;");
+            addTopicBtn.setStyle("-fx-background-color: #445a3c; -fx-text-fill: #f0e8dc; -fx-font-size: 11px; -fx-font-weight: bold; -fx-cursor: hand; -fx-background-radius: 6px; -fx-padding: 6px 12px;");
             addTopicBtn.setOnAction(e -> promptAddTopic());
 
             emptyPrompt.getChildren().addAll(emptyLabel, addTopicBtn);
@@ -2093,15 +2083,15 @@ public class HelloController {
             }
 
             Label folderIcon = new Label(isOpened ? "▼ 📂" : "▶ 📁");
-            folderIcon.setStyle("-fx-font-size: " + (isOpened ? "12px;" : "11px;") + " -fx-text-fill: #475569;");
+            folderIcon.setStyle("-fx-font-size: " + (isOpened ? "12px;" : "11px;") + " -fx-text-fill: #4b5c46;");
 
             Label topicTitle = new Label(topic.getTitle());
-            topicTitle.setStyle("-fx-font-size: 13px; -fx-font-weight: " + (isOpened ? "bold;" : "normal;") + " -fx-text-fill: #1e293b;");
+            topicTitle.setStyle("-fx-font-size: 13px; -fx-font-weight: " + (isOpened ? "bold;" : "normal;") + " -fx-text-fill: #1c2a18;");
             HBox.setHgrow(topicTitle, Priority.ALWAYS);
 
             // Options menu (Rename, Attach, Delete)
             Button optionsBtn = new Button("⋮");
-            optionsBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #64748b; -fx-font-size: 13px; -fx-font-weight: bold; -fx-padding: 0 4px; -fx-cursor: hand;");
+            optionsBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #71816c; -fx-font-size: 13px; -fx-font-weight: bold; -fx-padding: 0 4px; -fx-cursor: hand;");
 
             ContextMenu topicMenu = new ContextMenu();
             MenuItem renameItem = new MenuItem("✏ Rename Topic");
@@ -2120,13 +2110,13 @@ public class HelloController {
                 // Quick Add Page button
                 Button addPageBtn = new Button("+ Page");
                 addPageBtn.setTooltip(new Tooltip("Add new page to this topic"));
-                addPageBtn.setStyle("-fx-background-color: #f1f5f9; -fx-text-fill: #334155; -fx-font-size: 10px; -fx-font-weight: bold; -fx-background-radius: 4px; -fx-padding: 3px 6px; -fx-cursor: hand;");
+                addPageBtn.setStyle("-fx-background-color: #d8e2d4; -fx-text-fill: #2c3f26; -fx-font-size: 10px; -fx-font-weight: bold; -fx-background-radius: 4px; -fx-padding: 3px 6px; -fx-cursor: hand;");
                 addPageBtn.setOnAction(e -> promptAddPage(topic));
 
                 // Quick Add File button
                 Button addFileBtn = new Button("+ File");
                 addFileBtn.setTooltip(new Tooltip("Attach file (PDF, PPTX, Word, etc.) to this topic"));
-                addFileBtn.setStyle("-fx-background-color: #f1f5f9; -fx-text-fill: #334155; -fx-font-size: 10px; -fx-font-weight: bold; -fx-background-radius: 4px; -fx-padding: 3px 6px; -fx-cursor: hand;");
+                addFileBtn.setStyle("-fx-background-color: #d8e2d4; -fx-text-fill: #2c3f26; -fx-font-size: 10px; -fx-font-weight: bold; -fx-background-radius: 4px; -fx-padding: 3px 6px; -fx-cursor: hand;");
                 addFileBtn.setOnAction(e -> attachFileToTopic(topic));
 
                 topicHeader.getChildren().addAll(folderIcon, topicTitle, addPageBtn, addFileBtn, optionsBtn);
@@ -2443,8 +2433,8 @@ public class HelloController {
      */
     private Button createUnboxedButton(String text, Runnable action) {
         Button btn = new Button(text);
-        String normalStyle = "-fx-background-color: transparent; -fx-text-fill: #4338ca; -fx-font-weight: bold; -fx-font-size: 12px; -fx-cursor: hand; -fx-padding: 4px 10px; -fx-background-radius: 6px;";
-        String hoverStyle = "-fx-background-color: #f1f5f9; -fx-text-fill: #3730a3; -fx-font-weight: bold; -fx-font-size: 12px; -fx-cursor: hand; -fx-padding: 4px 10px; -fx-background-radius: 6px;";
+        String normalStyle = "-fx-background-color: transparent; -fx-text-fill: #445a3c; -fx-font-weight: bold; -fx-font-size: 12px; -fx-cursor: hand; -fx-padding: 4px 10px; -fx-background-radius: 6px;";
+        String hoverStyle = "-fx-background-color: #f0e8dc; -fx-text-fill: #1c2a18; -fx-font-weight: bold; -fx-font-size: 12px; -fx-cursor: hand; -fx-padding: 4px 10px; -fx-background-radius: 6px;";
         btn.setStyle(normalStyle);
         btn.setOnMouseEntered(e -> btn.setStyle(hoverStyle));
         btn.setOnMouseExited(e -> btn.setStyle(normalStyle));
@@ -2508,7 +2498,7 @@ public class HelloController {
         topRow.setAlignment(Pos.CENTER_LEFT);
 
         TextField pageTitleField = new TextField(page.getTitle());
-        pageTitleField.setStyle("-fx-font-size: 26px; -fx-font-weight: bold; -fx-text-fill: #1e293b; -fx-background-color: transparent; -fx-border-color: transparent; -fx-border-width: 0; -fx-focus-color: transparent; -fx-faint-focus-color: transparent; -fx-padding: 0;");
+        pageTitleField.setStyle("-fx-font-size: 26px; -fx-font-weight: bold; -fx-text-fill: #1c2a18; -fx-background-color: transparent; -fx-border-color: transparent; -fx-border-width: 0; -fx-focus-color: transparent; -fx-faint-focus-color: transparent; -fx-padding: 0;");
         HBox.setHgrow(pageTitleField, Priority.ALWAYS);
         pageTitleField.focusedProperty().addListener((obs, oldVal, newVal) -> {
             if (!newVal) {
@@ -2536,7 +2526,7 @@ public class HelloController {
         });
 
         Label saveBadge = new Label("Saved ✓");
-        saveBadge.setStyle("-fx-font-size: 11px; -fx-text-fill: #10b981; -fx-background-color: #ecfdf5; -fx-padding: 2px 8px; -fx-background-radius: 10px;");
+        saveBadge.setStyle("-fx-font-size: 11px; -fx-text-fill: #2c3f26; -fx-background-color: #d8e2d4; -fx-padding: 2px 8px; -fx-background-radius: 10px;");
 
         // Just one clean +Image button
         Button addImageBtn = createUnboxedButton("🖼 + Image", this::promptUploadImage);
@@ -2545,12 +2535,12 @@ public class HelloController {
 
         // Thin horizontal underline right beneath title
         Region titleLine = new Region();
-        titleLine.setStyle("-fx-border-color: #cbd5e1; -fx-border-width: 0 0 1px 0; -fx-pref-height: 1px;");
+        titleLine.setStyle("-fx-border-color: #e5dcce; -fx-border-width: 0 0 1px 0; -fx-pref-height: 1px;");
 
         // Subtle Date and Time matching OneNote reference
         String dateTimeText = LocalDateTime.now().format(DateTimeFormatter.ofPattern("EEEE, MMMM d, yyyy      h:mm a"));
         Label timestampLabel = new Label(dateTimeText);
-        timestampLabel.setStyle("-fx-font-size: 12px; -fx-text-fill: #64748b; -fx-padding: 2px 0 4px 0;");
+        timestampLabel.setStyle("-fx-font-size: 12px; -fx-text-fill: #71816c; -fx-padding: 2px 0 4px 0;");
 
         // Compact initial spacing at the top
         VBox pageHeader = new VBox(2);
@@ -2576,7 +2566,7 @@ public class HelloController {
         refreshBlocksView();
 
         VBox docSheet = new VBox(6);
-        docSheet.setStyle("-fx-background-color: #ffffff; -fx-padding: 8px 24px 20px 24px;");
+        docSheet.setStyle("-fx-background-color: #fcf9f2; -fx-padding: 8px 24px 20px 24px; -fx-background-radius: 14px;");
         VBox.setVgrow(docSheet, Priority.ALWAYS);
         docSheet.getChildren().addAll(pageHeader, scrollPane);
 
@@ -2670,7 +2660,7 @@ public class HelloController {
         textArea.setWrapText(true);
         int lineCount = block.getContent().isEmpty() ? 2 : Math.max(2, block.getContent().split("\n", -1).length + 1);
         textArea.setPrefRowCount(Math.min(lineCount, 25));
-        textArea.setStyle("-fx-background-color: transparent; -fx-background-insets: 0; -fx-border-color: transparent; -fx-border-width: 0; -fx-focus-color: transparent; -fx-faint-focus-color: transparent; -fx-box-border: transparent; -fx-padding: 0; -fx-font-family: 'Segoe UI', system-ui, sans-serif; -fx-font-size: 15px; -fx-text-fill: #1e293b; -fx-line-spacing: 3px;");
+        textArea.setStyle("-fx-background-color: transparent; -fx-background-insets: 0; -fx-border-color: transparent; -fx-border-width: 0; -fx-focus-color: transparent; -fx-faint-focus-color: transparent; -fx-box-border: transparent; -fx-padding: 0; -fx-font-family: 'Segoe UI', system-ui, sans-serif; -fx-font-size: 15px; -fx-text-fill: #1c2a18; -fx-line-spacing: 3px;");
 
         // Key handler for Ctrl+V image paste
         textArea.setOnKeyPressed(event -> {
@@ -2709,18 +2699,18 @@ public class HelloController {
 
         HBox topBar = new HBox(8);
         topBar.setAlignment(Pos.CENTER_LEFT);
-        topBar.setStyle("-fx-padding: 0 0 6px 0; -fx-border-color: #f1f5f9; -fx-border-width: 0 0 1px 0;");
+        topBar.setStyle("-fx-padding: 0 0 6px 0; -fx-border-color: #d8e2d4; -fx-border-width: 0 0 1px 0;");
 
         Label typeLbl = new Label("💻 Code");
-        typeLbl.setStyle("-fx-font-weight: bold; -fx-font-size: 11px; -fx-text-fill: #64748b;");
+        typeLbl.setStyle("-fx-font-weight: bold; -fx-font-size: 11px; -fx-text-fill: #71816c;");
 
         Label langBadge = new Label((block.getExtra() != null && !block.getExtra().isEmpty()) ? block.getExtra() : "Java");
-        langBadge.setStyle("-fx-background-color: #f1f5f9; -fx-text-fill: #475569; -fx-font-size: 11px; -fx-font-weight: bold; -fx-padding: 2px 7px; -fx-background-radius: 4px;");
+        langBadge.setStyle("-fx-background-color: #d8e2d4; -fx-text-fill: #2c3f26; -fx-font-size: 11px; -fx-font-weight: bold; -fx-padding: 2px 7px; -fx-background-radius: 4px;");
 
         ComboBox<String> langCombo = new ComboBox<>();
         langCombo.getItems().addAll("Java", "Python", "C", "C++", "JavaScript", "HTML/CSS", "SQL", "Bash", "Text");
         langCombo.setValue(langBadge.getText());
-        langCombo.setStyle("-fx-background-color: #f8fafc; -fx-font-size: 11px; -fx-border-color: #cbd5e1; -fx-border-radius: 4px;");
+        langCombo.setStyle("-fx-background-color: #fcf9f2; -fx-font-size: 11px; -fx-border-color: #d8e2d4; -fx-border-radius: 4px;");
         langCombo.setVisible(false);
         langCombo.setManaged(false);
         langCombo.setOnAction(e -> {
@@ -2734,7 +2724,7 @@ public class HelloController {
         });
 
         Button editBtn = new Button("✏️ Edit");
-        editBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #4f46e5; -fx-font-size: 11px; -fx-font-weight: bold; -fx-cursor: hand; -fx-padding: 2px 6px; -fx-background-radius: 4px;");
+        editBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #445a3c; -fx-font-size: 11px; -fx-font-weight: bold; -fx-cursor: hand; -fx-padding: 2px 6px; -fx-background-radius: 4px;");
         editBtn.setOnAction(e -> {
             boolean isEditing = !langCombo.isVisible();
             langCombo.setVisible(isEditing);
@@ -2747,7 +2737,7 @@ public class HelloController {
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
         Button copyBtn = new Button("📋 Copy");
-        copyBtn.setStyle("-fx-background-color: #f1f5f9; -fx-text-fill: #334155; -fx-font-size: 11px; -fx-font-weight: bold; -fx-background-radius: 6px; -fx-padding: 3px 8px; -fx-cursor: hand;");
+        copyBtn.setStyle("-fx-background-color: #f0e8dc; -fx-text-fill: #2c3f26; -fx-font-size: 11px; -fx-font-weight: bold; -fx-background-radius: 6px; -fx-padding: 3px 8px; -fx-cursor: hand;");
         copyBtn.setOnAction(e -> {
             Clipboard clipboard = Clipboard.getSystemClipboard();
             ClipboardContent cc = new ClipboardContent();
@@ -2755,11 +2745,11 @@ public class HelloController {
             clipboard.setContent(cc);
 
             copyBtn.setText("✓ Copied!");
-            copyBtn.setStyle("-fx-background-color: #059669; -fx-text-fill: #ffffff; -fx-font-size: 11px; -fx-font-weight: bold; -fx-background-radius: 6px; -fx-padding: 3px 8px;");
+            copyBtn.setStyle("-fx-background-color: #445a3c; -fx-text-fill: #ffffff; -fx-font-size: 11px; -fx-font-weight: bold; -fx-background-radius: 6px; -fx-padding: 3px 8px;");
             PauseTransition pause = new PauseTransition(Duration.seconds(1.5));
             pause.setOnFinished(ev -> {
                 copyBtn.setText("📋 Copy");
-                copyBtn.setStyle("-fx-background-color: #f1f5f9; -fx-text-fill: #334155; -fx-font-size: 11px; -fx-font-weight: bold; -fx-background-radius: 6px; -fx-padding: 3px 8px;");
+                copyBtn.setStyle("-fx-background-color: #f0e8dc; -fx-text-fill: #2c3f26; -fx-font-size: 11px; -fx-font-weight: bold; -fx-background-radius: 6px; -fx-padding: 3px 8px;");
             });
             pause.play();
         });
@@ -2779,7 +2769,7 @@ public class HelloController {
         codeArea.setWrapText(false);
         int lineCount = block.getContent().isEmpty() ? 5 : Math.max(5, block.getContent().split("\n", -1).length + 2);
         codeArea.setPrefRowCount(Math.min(lineCount, 22));
-        codeArea.setStyle("-fx-font-family: 'Consolas', 'Courier New', monospace; -fx-font-size: 13px; -fx-text-fill: #1e293b; -fx-background-color: transparent; -fx-border-color: transparent; -fx-border-width: 0;");
+        codeArea.setStyle("-fx-font-family: 'Consolas', 'Courier New', monospace; -fx-font-size: 13px; -fx-text-fill: #1c2a18; -fx-background-color: transparent; -fx-border-color: transparent; -fx-border-width: 0;");
 
         codeArea.textProperty().addListener((obs, oldText, newText) -> {
             block.setContent(newText);
@@ -3056,25 +3046,25 @@ public class HelloController {
         VBox emptyPrompt = new VBox(12);
         emptyPrompt.setAlignment(Pos.CENTER);
         emptyPrompt.setPadding(new Insets(60, 20, 60, 20));
-        emptyPrompt.setStyle("-fx-background-color: #f8fafc; -fx-background-radius: 8px; -fx-border-color: #e2e8f0; -fx-border-radius: 8px; -fx-border-style: dashed;");
+        emptyPrompt.setStyle("-fx-background-color: #fcf9f2; -fx-background-radius: 14px; -fx-border-color: #e5dcce; -fx-border-radius: 14px; -fx-border-style: dashed;");
         VBox.setVgrow(emptyPrompt, Priority.ALWAYS);
 
         Label icon = new Label("📄");
         icon.setStyle("-fx-font-size: 40px;");
 
         Label title = new Label(currentTopic != null ? "No Pages in \"" + currentTopic.getTitle() + "\"" : "No Page Selected");
-        title.setStyle("-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #1e293b;");
+        title.setStyle("-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #1c2a18;");
 
         Label sub = new Label(currentTopic != null
                 ? "This topic doesn't have any pages yet. Click below to add the first page."
                 : "Select a page from the Topics Explorer on the left, or add a new page to begin writing.");
-        sub.setStyle("-fx-font-size: 12px; -fx-text-fill: #64748b;");
+        sub.setStyle("-fx-font-size: 12px; -fx-text-fill: #71816c;");
 
         emptyPrompt.getChildren().addAll(icon, title, sub);
 
         if (currentTopic != null) {
             Button addFirstPageBtn = new Button("📝 + Add First Page to \"" + currentTopic.getTitle() + "\"");
-            addFirstPageBtn.setStyle("-fx-background-color: #6366f1; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 12px; -fx-padding: 8px 16px; -fx-background-radius: 6px; -fx-cursor: hand;");
+            addFirstPageBtn.setStyle("-fx-background-color: #445a3c; -fx-text-fill: #f0e8dc; -fx-font-weight: bold; -fx-font-size: 12px; -fx-padding: 8px 16px; -fx-background-radius: 8px; -fx-cursor: hand;");
             addFirstPageBtn.setOnAction(e -> promptAddPage(currentTopic));
             emptyPrompt.getChildren().add(addFirstPageBtn);
         }
@@ -3221,16 +3211,16 @@ public class HelloController {
             VBox emptyPrompt = new VBox(12);
             emptyPrompt.setAlignment(Pos.CENTER);
             emptyPrompt.setPadding(new Insets(40));
-            emptyPrompt.setStyle("-fx-background-color: #f8fafc; -fx-background-radius: 12px; -fx-border-color: #e2e8f0; -fx-border-radius: 12px;");
+            emptyPrompt.setStyle("-fx-background-color: #fcf9f2; -fx-background-radius: 12px; -fx-border-color: #d8e2d4; -fx-border-radius: 12px;");
 
             Label emptyTitle = new Label("📅 Your Routine is Empty");
-            emptyTitle.setStyle("-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #1e293b;");
+            emptyTitle.setStyle("-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #1c2a18;");
 
             Label emptySubtitle = new Label("You can build your schedule from scratch. Click '+ Add Weekday' or '+ Add Time Slot' above to begin!");
-            emptySubtitle.setStyle("-fx-font-size: 13px; -fx-text-fill: #64748b;");
+            emptySubtitle.setStyle("-fx-font-size: 13px; -fx-text-fill: #71816c;");
 
             Button quickSetupBtn = new Button("Load Starter Template (Mon-Fri, 5 Slots)");
-            quickSetupBtn.setStyle("-fx-background-color: #e0e7ff; -fx-text-fill: #4338ca; -fx-font-weight: bold; -fx-cursor: hand; -fx-background-radius: 6px; -fx-padding: 8px 16px;");
+            quickSetupBtn.setStyle("-fx-background-color: #445a3c; -fx-text-fill: #ffffff; -fx-font-weight: bold; -fx-cursor: hand; -fx-background-radius: 8px; -fx-padding: 8px 16px;");
             quickSetupBtn.setOnAction(e -> {
                 weekdays = new ArrayList<>(Arrays.asList("Monday", "Tuesday", "Wednesday", "Thursday", "Friday"));
                 timeSlots = new ArrayList<>(Arrays.asList("08:30 - 09:50", "10:00 - 11:20", "11:30 - 12:50", "01:30 PM - 02:50 PM", "03:00 PM - 04:20 PM"));
@@ -3251,8 +3241,8 @@ public class HelloController {
         Label cornerLabel = new Label("Day \\ Time");
         cornerLabel.setAlignment(Pos.CENTER);
         cornerLabel.setPrefSize(130, 48);
-        cornerLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 13px; -fx-text-fill: #475569; "
-                + "-fx-background-color: #f1f5f9; -fx-background-radius: 8px; -fx-border-color: #cbd5e1; -fx-border-radius: 8px;");
+        cornerLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 13px; -fx-text-fill: #1c2a18; "
+                + "-fx-background-color: #f0e8dc; -fx-background-radius: 8px; -fx-border-color: #e5dcce; -fx-border-radius: 8px;");
         routineGrid.add(cornerLabel, 0, 0);
 
         // 3. Top Header Row: Time Slots with Right-Click Context Menu ("Add to Left", "Add to Right")
@@ -3265,8 +3255,8 @@ public class HelloController {
             timeHeader.setTextAlignment(javafx.scene.text.TextAlignment.CENTER);
             timeHeader.setPrefSize(160, 48);
             timeHeader.setTooltip(new Tooltip("Click to add slot to left/right, edit, or delete"));
-            timeHeader.setStyle("-fx-font-weight: bold; -fx-font-size: 11px; -fx-text-fill: #312e81; "
-                    + "-fx-background-color: #e0e7ff; -fx-background-radius: 8px; -fx-border-color: #c7d2fe; -fx-border-radius: 8px; -fx-cursor: hand;");
+            timeHeader.setStyle("-fx-font-weight: bold; -fx-font-size: 11px; -fx-text-fill: #2c3f26; "
+                    + "-fx-background-color: #e8ede5; -fx-background-radius: 8px; -fx-border-color: #cdd8c9; -fx-border-radius: 8px; -fx-cursor: hand;");
 
             // Context menu for time slots
             ContextMenu menu = createTimeSlotContextMenu(slotIndex, slotTime);
@@ -3291,8 +3281,8 @@ public class HelloController {
             dayHeader.setTextAlignment(javafx.scene.text.TextAlignment.CENTER);
             dayHeader.setPrefSize(130, 85);
             dayHeader.setTooltip(new Tooltip("Click to add weekday above/below, rename, or delete"));
-            dayHeader.setStyle("-fx-font-weight: bold; -fx-font-size: 13px; -fx-text-fill: #1e293b; "
-                    + "-fx-background-color: #f8fafc; -fx-background-radius: 8px; -fx-border-color: #e2e8f0; -fx-border-radius: 8px; -fx-cursor: hand;");
+            dayHeader.setStyle("-fx-font-weight: bold; -fx-font-size: 13px; -fx-text-fill: #1c2a18; "
+                    + "-fx-background-color: #fcf9f2; -fx-background-radius: 8px; -fx-border-color: #e5dcce; -fx-border-radius: 8px; -fx-cursor: hand;");
 
             // Context menu for weekday operations (Add Weekday Above, Add Weekday Below, Rename, Delete)
             ContextMenu weekdayMenu = createWeekdayContextMenu(dayIndex, day);
@@ -3496,12 +3486,12 @@ public class HelloController {
         if (hasClass) {
             // Subject Name (e.g. CSE2008)
             Label subjectLabel = new Label(slot.getSubjectName());
-            subjectLabel.setStyle("-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #1e1b4b;");
+            subjectLabel.setStyle("-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #1c2a18;");
 
             // Teacher Code (e.g. SH)
             Label teacherLabel = new Label(slot.getTeacherCode() != null && !slot.getTeacherCode().isEmpty()
                     ? slot.getTeacherCode() : "-");
-            teacherLabel.setStyle("-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #4338ca;");
+            teacherLabel.setStyle("-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #4b5c46;");
 
             card.getChildren().addAll(subjectLabel, teacherLabel);
 
@@ -3510,33 +3500,18 @@ public class HelloController {
                 int count = slot.getActivities().size();
                 String badgeText = "📌 " + count + (count == 1 ? " Activity" : " Activities");
                 Label activityBadge = new Label(badgeText);
-                activityBadge.setStyle("-fx-background-color: #fef3c7; -fx-text-fill: #b45309; "
+                activityBadge.setStyle("-fx-background-color: #d8e2d4; -fx-text-fill: #2c3f26; "
                         + "-fx-font-size: 10px; -fx-font-weight: bold; -fx-padding: 2px 6px; -fx-background-radius: 4px;");
                 card.getChildren().add(activityBadge);
             }
-
-            card.setStyle("-fx-background-color: #eef2ff; -fx-background-radius: 8px; "
-                    + "-fx-border-color: #c7d2fe; -fx-border-radius: 8px; -fx-cursor: hand;");
         } else {
             // Empty Cell
             Label addLabel = new Label("+ Add Class");
-            addLabel.setStyle("-fx-text-fill: #94a3b8; -fx-font-size: 12px; -fx-font-weight: bold;");
+            addLabel.setStyle("-fx-text-fill: #71816c; -fx-font-size: 12px; -fx-font-weight: bold;");
             card.getChildren().add(addLabel);
-            card.setStyle("-fx-background-color: #ffffff; -fx-background-radius: 8px; "
-                    + "-fx-border-color: #e2e8f0; -fx-border-radius: 8px; -fx-border-style: dashed; -fx-cursor: hand;");
         }
 
-        // Hover Effect
-        card.setOnMouseEntered(e -> card.setStyle(
-                (hasClass ? "-fx-background-color: #e0e7ff; -fx-border-color: #818cf8;"
-                          : "-fx-background-color: #f1f5f9; -fx-border-color: #cbd5e1;")
-                + "-fx-background-radius: 8px; -fx-border-radius: 8px; -fx-cursor: hand;"
-        ));
-        card.setOnMouseExited(e -> card.setStyle(
-                (hasClass ? "-fx-background-color: #eef2ff; -fx-border-color: #c7d2fe;"
-                          : "-fx-background-color: #ffffff; -fx-border-color: #e2e8f0; -fx-border-style: dashed;")
-                + "-fx-background-radius: 8px; -fx-border-radius: 8px; -fx-cursor: hand;"
-        ));
+        AppTheme.applyRoutineCell(card, hasClass);
 
         // Click Event: opens the floating modal dialog
         card.setOnMouseClicked(e -> {
@@ -3668,18 +3643,18 @@ public class HelloController {
             VBox emptyPrompt = new VBox(10);
             emptyPrompt.setAlignment(Pos.CENTER);
             emptyPrompt.setPadding(new Insets(36, 16, 36, 16));
-            emptyPrompt.setStyle("-fx-background-color: #f8fafc; -fx-background-radius: 8px; -fx-border-color: #e2e8f0; -fx-border-radius: 8px; -fx-border-style: dashed;");
+            emptyPrompt.setStyle("-fx-background-color: #fcf9f2; -fx-background-radius: 12px; -fx-border-color: #e5dcce; -fx-border-radius: 12px; -fx-border-style: dashed;");
 
             Label icon = new Label("🎉");
             icon.setStyle("-fx-font-size: 30px;");
 
             Label title = new Label("No Pending Tasks");
-            title.setStyle("-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #1e293b;");
+            title.setStyle("-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #1c2a18;");
 
             Label sub = new Label("Tasks and activities with deadlines added in your calendar will appear here with live countdowns.");
             sub.setWrapText(true);
             sub.setTextAlignment(javafx.scene.text.TextAlignment.CENTER);
-            sub.setStyle("-fx-font-size: 11px; -fx-text-fill: #64748b;");
+            sub.setStyle("-fx-font-size: 11px; -fx-text-fill: #71816c;");
 
             emptyPrompt.getChildren().addAll(icon, title, sub);
             tasksContainer.getChildren().add(emptyPrompt);
@@ -3724,11 +3699,11 @@ public class HelloController {
         subjectLabel.setStyle("-fx-font-size: 11px; -fx-font-weight: bold; -fx-background-radius: 4px; -fx-padding: 2px 6px;");
 
         Label taskNameLabel = new Label(task.getActivityType());
-        taskNameLabel.setStyle("-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #1e293b;");
+        taskNameLabel.setStyle("-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #1c2a18;");
         HBox.setHgrow(taskNameLabel, Priority.ALWAYS);
 
         Button optionsBtn = new Button("⋮");
-        optionsBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #94a3b8; -fx-font-size: 14px; -fx-font-weight: bold; -fx-padding: 0 4px; -fx-cursor: hand;");
+        optionsBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #71816c; -fx-font-size: 14px; -fx-font-weight: bold; -fx-padding: 0 4px; -fx-cursor: hand;");
 
         topRow.getChildren().addAll(subjectLabel, taskNameLabel, optionsBtn);
 
@@ -4038,10 +4013,6 @@ public class HelloController {
             boolean isToday = date.equals(today);
 
             VBox cell = new VBox(4);
-            cell.getStyleClass().add("calendar-day-cell");
-            if (!isCurrentMonth) {
-                cell.getStyleClass().add("calendar-day-cell-other-month");
-            }
             VBox.setVgrow(cell, Priority.ALWAYS);
 
             // Day Header Row
@@ -4049,14 +4020,7 @@ public class HelloController {
             dayHeader.setAlignment(Pos.CENTER_LEFT);
 
             Label dayNumLabel = new Label(String.valueOf(date.getDayOfMonth()));
-            if (isToday) {
-                dayNumLabel.getStyleClass().add("calendar-day-today-badge");
-            } else {
-                dayNumLabel.getStyleClass().add("calendar-day-number");
-                if (!isCurrentMonth) {
-                    dayNumLabel.setStyle("-fx-text-fill: #94a3b8;");
-                }
-            }
+            AppTheme.applyCalendarDayCell(cell, dayNumLabel, isToday, isCurrentMonth);
             dayHeader.getChildren().add(dayNumLabel);
 
             // Task pills container
@@ -4072,7 +4036,7 @@ public class HelloController {
                     if (shown >= displayLimit) {
                         int remaining = dayTasks.size() - displayLimit;
                         Label moreLabel = new Label("+" + remaining + " more");
-                        moreLabel.setStyle("-fx-font-size: 10px; -fx-text-fill: #6366f1; -fx-font-weight: bold; -fx-padding: 1px 4px;");
+                        moreLabel.setStyle("-fx-font-size: 10px; -fx-text-fill: #445a3c; -fx-font-weight: bold; -fx-padding: 1px 4px;");
                         tasksBox.getChildren().add(moreLabel);
                         break;
                     }

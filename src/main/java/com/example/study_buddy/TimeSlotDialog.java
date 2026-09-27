@@ -34,26 +34,26 @@ public class TimeSlotDialog {
         VBox root = new VBox(14);
         root.setPadding(new Insets(22));
         root.setPrefWidth(460);
-        root.setStyle("-fx-background-color: #ffffff; -fx-font-family: 'Segoe UI', Arial, sans-serif;");
+        root.setStyle("-fx-background-color: #fcf9f2; -fx-font-family: 'Segoe UI', Arial, sans-serif;");
 
         // 1. Header
         Label titleLabel = new Label(dialogTitle);
-        titleLabel.setStyle("-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #1e293b;");
+        titleLabel.setStyle("-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #1c2a18;");
 
         Label subtitleLabel = new Label(headerText);
-        subtitleLabel.setStyle("-fx-font-size: 12px; -fx-text-fill: #64748b;");
+        subtitleLabel.setStyle("-fx-font-size: 12px; -fx-text-fill: #71816c;");
         subtitleLabel.setWrapText(true);
 
         // 2. Input Field
         Label fieldLabel = new Label("Class Duration / Time Slot:");
-        fieldLabel.setStyle("-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #334155;");
+        fieldLabel.setStyle("-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #2c3f26;");
 
         TextField durationField = new TextField(initialValue != null ? initialValue : "");
         durationField.setPromptText("e.g. 08:30 - 09:50 or 01:30 PM - 02:50 PM");
-        durationField.setStyle("-fx-padding: 9px 12px; -fx-background-radius: 6px; -fx-border-radius: 6px; -fx-border-color: #cbd5e1; -fx-font-size: 13px;");
+        durationField.setStyle("-fx-background-color: #ffffff; -fx-padding: 9px 12px; -fx-background-radius: 8px; -fx-border-radius: 8px; -fx-border-color: #d8e2d4; -fx-font-size: 13px; -fx-text-fill: #1c2a18;");
 
         Label hintLabel = new Label("💡 Examples: 08:30 - 09:50, 10:00 AM - 11:20 AM, 1:30 - 2:50, 14:00 - 15:30");
-        hintLabel.setStyle("-fx-font-size: 11px; -fx-text-fill: #94a3b8;");
+        hintLabel.setStyle("-fx-font-size: 11px; -fx-text-fill: #71816c;");
 
         // 3. Error Feedback Label (initially hidden)
         Label errorLabel = new Label();
@@ -68,11 +68,11 @@ public class TimeSlotDialog {
         buttonBar.setPadding(new Insets(10, 0, 0, 0));
 
         Button cancelBtn = new Button("Cancel");
-        cancelBtn.setStyle("-fx-background-color: #f1f5f9; -fx-text-fill: #64748b; -fx-font-weight: bold; -fx-background-radius: 6px; -fx-padding: 8px 16px; -fx-cursor: hand;");
+        cancelBtn.setStyle("-fx-background-color: #f0e8dc; -fx-text-fill: #2c3f26; -fx-font-weight: bold; -fx-background-radius: 8px; -fx-padding: 8px 16px; -fx-cursor: hand;");
         cancelBtn.setOnAction(e -> dialog.close());
 
         Button submitBtn = new Button("Confirm Duration");
-        submitBtn.setStyle("-fx-background-color: #4f46e5; -fx-text-fill: #ffffff; -fx-font-weight: bold; -fx-background-radius: 6px; -fx-padding: 8px 18px; -fx-cursor: hand;");
+        submitBtn.setStyle("-fx-background-color: #445a3c; -fx-text-fill: #ffffff; -fx-font-weight: bold; -fx-background-radius: 8px; -fx-padding: 8px 18px; -fx-cursor: hand;");
 
         Runnable validateAndSubmit = () -> {
             String input = durationField.getText() != null ? durationField.getText().trim() : "";
@@ -85,7 +85,7 @@ public class TimeSlotDialog {
                 errorLabel.setText("⚠️ " + error);
                 errorLabel.setVisible(true);
                 errorLabel.setManaged(true);
-                durationField.setStyle("-fx-padding: 9px 12px; -fx-background-radius: 6px; -fx-border-radius: 6px; -fx-border-color: #ef4444; -fx-font-size: 13px;");
+                durationField.setStyle("-fx-background-color: #ffffff; -fx-padding: 9px 12px; -fx-background-radius: 8px; -fx-border-radius: 8px; -fx-border-color: #ef4444; -fx-font-size: 13px; -fx-text-fill: #1c2a18;");
                 durationField.requestFocus();
             } else {
                 // Success: invoke callback and close
@@ -102,7 +102,7 @@ public class TimeSlotDialog {
             if (errorLabel.isVisible()) {
                 errorLabel.setVisible(false);
                 errorLabel.setManaged(false);
-                durationField.setStyle("-fx-padding: 9px 12px; -fx-background-radius: 6px; -fx-border-radius: 6px; -fx-border-color: #4f46e5; -fx-font-size: 13px;");
+                durationField.setStyle("-fx-background-color: #ffffff; -fx-padding: 9px 12px; -fx-background-radius: 8px; -fx-border-radius: 8px; -fx-border-color: #445a3c; -fx-font-size: 13px; -fx-text-fill: #1c2a18;");
             }
         });
 

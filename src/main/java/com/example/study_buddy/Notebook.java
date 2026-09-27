@@ -21,7 +21,7 @@ public class Notebook {
         this.userId = userId;
         this.title = title;
         this.description = description != null ? description : "";
-        this.colorHex = (colorHex != null && !colorHex.isEmpty()) ? colorHex : "#4f46e5";
+        this.colorHex = (colorHex != null && !colorHex.isEmpty()) ? colorHex : "#445a3c";
         this.topicCount = topicCount;
         this.pageCount = pageCount;
         this.createdAt = createdAt;

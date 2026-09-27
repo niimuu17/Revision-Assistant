@@ -40,18 +40,18 @@ public class TaskDetailDialog {
         VBox root = new VBox(14);
         root.setPadding(new Insets(22));
         root.setPrefWidth(420);
-        root.setStyle("-fx-background-color: #ffffff; -fx-font-family: 'Segoe UI', Arial, sans-serif;");
+        root.setStyle("-fx-background-color: #fcf9f2; -fx-font-family: 'Segoe UI', Arial, sans-serif;");
 
         // 1. Header Row
         HBox headerRow = new HBox(8);
         headerRow.setAlignment(Pos.CENTER_LEFT);
 
         Label headerTitle = new Label("Task Details 📋");
-        headerTitle.setStyle("-fx-font-size: 17px; -fx-font-weight: bold; -fx-text-fill: #1e293b;");
+        headerTitle.setStyle("-fx-font-size: 17px; -fx-font-weight: bold; -fx-text-fill: #1c2a18;");
         HBox.setHgrow(headerTitle, Priority.ALWAYS);
 
         Button closeTopBtn = new Button("✕");
-        closeTopBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #94a3b8; -fx-font-size: 14px; -fx-cursor: hand; -fx-padding: 0 4px;");
+        closeTopBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #71816c; -fx-font-size: 14px; -fx-cursor: hand; -fx-padding: 0 4px;");
         closeTopBtn.setOnAction(e -> dialog.close());
 
         headerRow.getChildren().addAll(headerTitle, closeTopBtn);
@@ -59,20 +59,20 @@ public class TaskDetailDialog {
         // 2. Title & Subject Banner
         HBox banner = new HBox(8);
         banner.setAlignment(Pos.CENTER_LEFT);
-        banner.setStyle("-fx-background-color: #f8fafc; -fx-padding: 10px 12px; -fx-background-radius: 8px; -fx-border-color: #e2e8f0; -fx-border-radius: 8px;");
+        banner.setStyle("-fx-background-color: #f1eae0; -fx-padding: 10px 12px; -fx-background-radius: 8px; -fx-border-color: #d8e2d4; -fx-border-radius: 8px;");
 
         Label subjectBadge = new Label(task.getSubjectName());
-        subjectBadge.setStyle("-fx-background-color: #e0e7ff; -fx-text-fill: #4338ca; -fx-font-size: 11px; -fx-font-weight: bold; -fx-background-radius: 4px; -fx-padding: 3px 8px;");
+        subjectBadge.setStyle("-fx-background-color: #d8e2d4; -fx-text-fill: #2c3f26; -fx-font-size: 11px; -fx-font-weight: bold; -fx-background-radius: 4px; -fx-padding: 3px 8px;");
 
         Label taskTitle = new Label(task.getActivityType());
-        taskTitle.setStyle("-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #1e293b;");
+        taskTitle.setStyle("-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #1c2a18;");
         HBox.setHgrow(taskTitle, Priority.ALWAYS);
 
         banner.getChildren().addAll(subjectBadge, taskTitle);
 
         // 3. Details Card
         VBox detailsBox = new VBox(10);
-        detailsBox.setStyle("-fx-background-color: #ffffff; -fx-padding: 6px 4px;");
+        detailsBox.setStyle("-fx-background-color: transparent; -fx-padding: 6px 4px;");
 
         // Date Row
         HBox dateRow = createInfoRow("📅 Due Date", task.getFormattedDate());
@@ -88,7 +88,7 @@ public class TaskDetailDialog {
         countdownRow.setAlignment(Pos.CENTER_LEFT);
         Label countdownLabelName = new Label("⏳ Status");
         countdownLabelName.setPrefWidth(110);
-        countdownLabelName.setStyle("-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #64748b;");
+        countdownLabelName.setStyle("-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #71816c;");
 
         RoutineTaskItem.TaskColorTheme theme = task.getColorTheme();
         Label countdownPill = new Label(task.getFormattedClockCountdown());
@@ -101,10 +101,10 @@ public class TaskDetailDialog {
         if (task.getNotes() != null && !task.getNotes().trim().isEmpty()) {
             VBox notesBox = new VBox(4);
             Label notesTitle = new Label("📝 Notes");
-            notesTitle.setStyle("-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #64748b;");
+            notesTitle.setStyle("-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #71816c;");
             Label notesContent = new Label(task.getNotes());
             notesContent.setWrapText(true);
-            notesContent.setStyle("-fx-font-size: 12px; -fx-text-fill: #334155; -fx-background-color: #f8fafc; -fx-padding: 8px 10px; -fx-background-radius: 6px; -fx-border-color: #e2e8f0; -fx-border-radius: 6px;");
+            notesContent.setStyle("-fx-font-size: 12px; -fx-text-fill: #1c2a18; -fx-background-color: #f1eae0; -fx-padding: 8px 10px; -fx-background-radius: 6px; -fx-border-color: #d8e2d4; -fx-border-radius: 6px;");
             notesBox.getChildren().addAll(notesTitle, notesContent);
             detailsBox.getChildren().add(notesBox);
         }
@@ -131,7 +131,7 @@ public class TaskDetailDialog {
         });
 
         Button editBtn = new Button("✏ Edit Task");
-        editBtn.setStyle("-fx-background-color: #e0e7ff; -fx-text-fill: #4338ca; -fx-font-weight: bold; -fx-background-radius: 6px; -fx-padding: 8px 14px; -fx-cursor: hand;");
+        editBtn.setStyle("-fx-background-color: #445a3c; -fx-text-fill: #ffffff; -fx-font-weight: bold; -fx-background-radius: 6px; -fx-padding: 8px 14px; -fx-cursor: hand;");
         editBtn.setOnAction(e -> {
             dialog.close();
             javafx.application.Platform.runLater(() -> {
@@ -140,7 +140,7 @@ public class TaskDetailDialog {
         });
 
         Button closeBtn = new Button("Close");
-        closeBtn.setStyle("-fx-background-color: #f1f5f9; -fx-text-fill: #334155; -fx-font-weight: bold; -fx-background-radius: 6px; -fx-padding: 8px 18px; -fx-cursor: hand;");
+        closeBtn.setStyle("-fx-background-color: #f0e8dc; -fx-text-fill: #2c3f26; -fx-font-weight: bold; -fx-background-radius: 6px; -fx-padding: 8px 18px; -fx-cursor: hand;");
         closeBtn.setOnAction(e -> dialog.close());
 
         Region spacer = new Region();
@@ -161,10 +161,10 @@ public class TaskDetailDialog {
 
         Label label = new Label(labelName);
         label.setPrefWidth(110);
-        label.setStyle("-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #64748b;");
+        label.setStyle("-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #71816c;");
 
         Label valLabel = new Label(value != null && !value.isEmpty() ? value : "—");
-        valLabel.setStyle("-fx-font-size: 12px; -fx-font-weight: 500; -fx-text-fill: #1e293b;");
+        valLabel.setStyle("-fx-font-size: 12px; -fx-font-weight: 500; -fx-text-fill: #1c2a18;");
         HBox.setHgrow(valLabel, Priority.ALWAYS);
 
         row.getChildren().addAll(label, valLabel);
