@@ -38,6 +38,7 @@ build/
 ### SQLite & User Data ###
 *.db
 study_buddy_data/
+revision_assistant_data/
 
 ### Mac OS ###
 .DS_Store

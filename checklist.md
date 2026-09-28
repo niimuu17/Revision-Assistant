@@ -1,4 +1,4 @@
-# Study Buddy - Project Requirements Checklist
+# Revision Assistant - Project Requirements Checklist
 
 > **Assessment against Teacher's Video Demonstration Key Points**  
 > *Generated on: September 26, 2026*

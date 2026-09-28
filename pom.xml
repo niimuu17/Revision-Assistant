@@ -5,9 +5,9 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.example</groupId>
-    <artifactId>Study_Buddy</artifactId>
+    <artifactId>Revision_Assistant</artifactId>
     <version>1.0-SNAPSHOT</version>
-    <name>Study_Buddy</name>
+    <name>Revision Assistant</name>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -86,7 +86,7 @@
                         <!-- Default configuration for running with: mvn clean javafx:run -->
                         <id>default-cli</id>
                         <configuration>
-                            <mainClass>com.example.study_buddy.Launcher</mainClass>
+                            <mainClass>com.example.revision_assistant.Launcher</mainClass>
                         </configuration>
                     </execution>
                 </executions>

@@ -1,0 +1,415 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.chart.PieChart?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ProgressBar?>
+<?import javafx.scene.control.ProgressIndicator?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.FlowPane?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox fx:id="mainRootContainer" alignment="TOP_CENTER" prefHeight="700.0" prefWidth="1100.0" spacing="14.0"
+      style="-fx-background-color: #526749;"
+      xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.example.revision_assistant.HelloController">
+    <padding>
+        <Insets bottom="16.0" left="20.0" right="20.0" top="14.0" />
+    </padding>
+
+    <!-- Top Navigation & Toolbar -->
+    <HBox fx:id="appTopBar" alignment="CENTER_LEFT" spacing="12.0"
+          style="-fx-background-color: #f0e8dc; -fx-padding: 12px 18px; -fx-background-radius: 16px; -fx-border-color: #e4d8c8; -fx-border-radius: 16px;">
+
+        <!-- Left Sidebar Toggle Button -->
+        <Button fx:id="leftToggleBtn" onAction="#handleToggleLeft" text="☰" />
+
+        <VBox spacing="2.0">
+            <Label fx:id="formTitleLabel" style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #1c2a18;" text="Revision Assistant 🎓" />
+            <Label fx:id="welcomeText" style="-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #4b5c46;" text="Class Routine" />
+            <Label fx:id="userDetailText" style="-fx-font-size: 11px; -fx-text-fill: #71816c;" text="Connected" />
+        </VBox>
+
+        <Region HBox.hgrow="ALWAYS" />
+
+        <!-- Right Sidebar Toggle Button (Shows on Homepage only) -->
+        <Button fx:id="rightToggleBtn" onAction="#handleToggleRight" text="📋" />
+    </HBox>
+
+    <!-- Main Workspace with Collapsible Left and Right Sidebars -->
+    <HBox alignment="TOP_CENTER" spacing="14.0" VBox.vgrow="ALWAYS">
+
+        <!-- Left Sidebar (Collapsible with smooth animation, closed by default) -->
+        <VBox fx:id="leftSidebar" maxWidth="0.0" minWidth="0.0" prefWidth="0.0" spacing="12.0"
+              visible="false" managed="false"
+              style="-fx-background-color: #f0e8dc; -fx-background-radius: 16px; -fx-border-color: #e4d8c8; -fx-border-radius: 16px; -fx-padding: 16px;">
+            <HBox alignment="CENTER_LEFT" spacing="8.0">
+                <Label style="-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #1c2a18;" text="Navigation" />
+            </HBox>
+            <VBox fx:id="leftSidebarContent" spacing="8.0" VBox.vgrow="ALWAYS">
+                <Button fx:id="navHomeBtn" alignment="BASELINE_LEFT" maxWidth="Infinity" onAction="#handleOpenMainMenu" text="🏠  Main Menu" />
+                <Button fx:id="navRoutineBtn" alignment="BASELINE_LEFT" maxWidth="Infinity" onAction="#handleOpenRoutine" text="📅  Class Routine" />
+                <Button fx:id="navCalendarBtn" alignment="BASELINE_LEFT" maxWidth="Infinity" onAction="#handleOpenCalendar" text="🗓️  Calendar" />
+                <Button fx:id="navQuizBtn" alignment="BASELINE_LEFT" maxWidth="Infinity" onAction="#handleOpenQuiz" text="🧠  Quiz" />
+                <Button fx:id="navProgressBtn" alignment="BASELINE_LEFT" maxWidth="Infinity" onAction="#handleOpenProgress" text="📊  Progress" />
+            </VBox>
+
+            <!-- Bottom Section: Logout Button -->
+            <VBox spacing="8.0" style="-fx-padding: 10px 0 0 0; -fx-border-color: #e6decb; -fx-border-width: 1px 0 0 0;">
+                <Button fx:id="logoutButton" alignment="CENTER" maxWidth="Infinity" onAction="#handleLogout" text="🚪 Log Out" />
+            </VBox>
+        </VBox>
+
+        <!-- Center Workspace: StackPane supporting Main Menu (Blank) & Routine Views -->
+        <StackPane fx:id="centerWorkspace" HBox.hgrow="ALWAYS">
+            <!-- View 1: Main Menu (Notebooks Dashboard) -->
+            <VBox fx:id="mainMenuView" alignment="TOP_LEFT" spacing="20.0"
+                  style="-fx-background-color: #f1eae0; -fx-padding: 24px 28px; -fx-background-radius: 18px; -fx-border-color: #e5dcce; -fx-border-radius: 18px;">
+                
+                <!-- Notebooks Header & Actions Bar -->
+                <HBox alignment="CENTER_LEFT" spacing="16.0">
+                    <Label fx:id="recentNotebooksLabel" text="Recent notebooks" style="-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #1c2a18;" />
+                    <Button fx:id="myNotebooksBtn" onAction="#handleMyNotebooks" text="📖 My Notebooks" />
+                    <Button fx:id="newNotebookBtn" onAction="#handleNewNotebook" text="+ New Notebook" />
+                </HBox>
+
+                <!-- Notebooks Scrollable Content Area -->
+                <ScrollPane fitToWidth="true" fitToHeight="true"
+                            style="-fx-background-color: transparent; -fx-background: transparent; -fx-border-color: transparent;" VBox.vgrow="ALWAYS">
+                    <VBox fx:id="notebooksContentArea" spacing="16.0" VBox.vgrow="ALWAYS">
+                        <FlowPane fx:id="notebooksGrid" hgap="20.0" vgap="20.0">
+                            <!-- Populated dynamically in HelloController -->
+                        </FlowPane>
+                    </VBox>
+                </ScrollPane>
+            </VBox>
+
+            <!-- View 2: Class Routine View (Exact previous routine layout) -->
+            <ScrollPane fx:id="routineView" fitToHeight="true" fitToWidth="true" visible="false" managed="false"
+                        style="-fx-background-color: transparent; -fx-background: transparent; -fx-border-color: #e5dcce; -fx-border-radius: 18px;">
+                <VBox alignment="TOP_CENTER" spacing="10.0" style="-fx-background-color: #f1eae0; -fx-padding: 16px; -fx-background-radius: 18px;">
+                    <HBox alignment="CENTER_LEFT" spacing="10.0">
+                        <Label style="-fx-font-size: 15px; -fx-font-weight: bold; -fx-text-fill: #1c2a18;" text="Routine" />
+                    </HBox>
+
+                    <GridPane fx:id="routineGrid" alignment="TOP_LEFT" hgap="10.0" vgap="10.0">
+                        <!-- Dynamically built in HelloController -->
+                    </GridPane>
+                </VBox>
+            </ScrollPane>
+
+            <!-- View 3: Google Calendar-Style Interactive Monthly Calendar View -->
+            <VBox fx:id="calendarView" spacing="12.0" visible="false" managed="false"
+                  style="-fx-background-color: #f1eae0; -fx-padding: 20px; -fx-background-radius: 18px; -fx-border-color: #e5dcce; -fx-border-radius: 18px;">
+                
+                <!-- Calendar Header Bar: Month/Year Dropdown Selectors, Navigation (Prev, Today, Next), and + Add Task button -->
+                <HBox alignment="CENTER_LEFT" spacing="14.0" style="-fx-padding: 0 0 12px 0; -fx-border-color: #e2e8f0; -fx-border-width: 0 0 1px 0;">
+                    <HBox alignment="CENTER_LEFT" spacing="8.0">
+                        <ComboBox fx:id="calendarMonthSelect" styleClass="calendar-select-box" prefWidth="145.0" />
+                        <ComboBox fx:id="calendarYearSelect" styleClass="calendar-select-box" prefWidth="95.0" />
+                    </HBox>
+                    <HBox alignment="CENTER_LEFT" spacing="6.0">
+                        <Button onAction="#handlePrevMonth" styleClass="btn-secondary-action" text="◀" />
+                        <Button onAction="#handleToday" styleClass="btn-secondary-action" text="Today" />
+                        <Button onAction="#handleNextMonth" styleClass="btn-secondary-action" text="▶" />
+                    </HBox>
+                    <Region HBox.hgrow="ALWAYS" />
+                    <Button onAction="#handleAddNewCalendarTask" styleClass="btn-primary" text="+ Add Task" />
+                </HBox>
+
+                <!-- Day Headers (Sun - Sat) -->
+                <GridPane fx:id="calendarDayHeaders" hgap="6.0" style="-fx-padding: 4px 0;" />
+
+                <!-- Scrollable Monthly Grid -->
+                <ScrollPane fitToWidth="true" fitToHeight="true"
+                            style="-fx-background-color: transparent; -fx-background: transparent; -fx-border-color: transparent;" VBox.vgrow="ALWAYS">
+                    <GridPane fx:id="calendarGrid" hgap="6.0" vgap="6.0" VBox.vgrow="ALWAYS" />
+                </ScrollPane>
+            </VBox>
+
+            <!-- View 4: Notebook Workspace View (Topics & Pages Explorer + Playground) -->
+            <VBox fx:id="notebookWorkspaceView" spacing="12.0" visible="false" managed="false"
+                  style="-fx-background-color: #f1eae0; -fx-padding: 16px; -fx-background-radius: 18px; -fx-border-color: #e5dcce; -fx-border-radius: 18px;">
+                
+                <!-- Workspace Top Bar: Back Button, Topics Toggle, Breadcrumb, Status -->
+                <HBox alignment="CENTER_LEFT" spacing="12.0" style="-fx-padding: 0 0 10px 0; -fx-border-color: #e5dcce; -fx-border-width: 0 0 1px 0;">
+                    <Button onAction="#handleBackToDashboard" styleClass="btn-secondary-action" text="◀ Back to Notebooks" />
+                    <Button fx:id="toggleTopicsBtn" onAction="#handleToggleTopicsSidebar" styleClass="btn-secondary-action" text="📂 Topics" />
+                    <Label fx:id="notebookBreadcrumbLabel" style="-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #1c2a18;" text="Notebook Title" />
+                    <Region HBox.hgrow="ALWAYS" />
+                    <Label fx:id="workspaceStatusLabel" style="-fx-font-size: 11px; -fx-text-fill: #71816c;" text="" />
+                </HBox>
+
+                <!-- Workspace Split/Dual Area: Topics Explorer (Left) & Page Playground (Right) -->
+                <HBox spacing="16.0" VBox.vgrow="ALWAYS">
+                    <!-- Left Column: Topics Explorer Pane (Collapsible Sidebar) -->
+                    <VBox fx:id="topicsSidebar" prefWidth="280.0" minWidth="0.0" maxWidth="320.0" spacing="10.0"
+                          style="-fx-background-color: #fcf9f2; -fx-padding: 14px; -fx-background-radius: 14px; -fx-border-color: #e5dcce; -fx-border-radius: 14px;">
+                        
+                        <HBox alignment="CENTER_LEFT" spacing="8.0">
+                            <Label text="TOPICS" style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #4b5c46;" />
+                            <Region HBox.hgrow="ALWAYS" />
+                            <Button onAction="#promptAddTopic" style="-fx-background-color: #445a3c; -fx-text-fill: #f0e8dc; -fx-font-weight: bold; -fx-font-size: 11px; -fx-cursor: hand; -fx-background-radius: 6px; -fx-padding: 4px 10px;" text="+ Add Topic" />
+                            <Button onAction="#handleCloseTopicsSidebar" style="-fx-background-color: transparent; -fx-text-fill: #94a3b8; -fx-font-size: 13px; -fx-cursor: hand; -fx-padding: 2px 6px;" text="✕" />
+                        </HBox>
+
+                        <ScrollPane fitToWidth="true" fitToHeight="true"
+                                    style="-fx-background-color: transparent; -fx-background: transparent; -fx-border-color: transparent;" VBox.vgrow="ALWAYS">
+                            <VBox fx:id="topicsListContainer" spacing="10.0">
+                                <!-- Dynamically populated topics list -->
+                            </VBox>
+                        </ScrollPane>
+                    </VBox>
+
+                    <!-- Right Column: Page Playground Area -->
+                    <VBox fx:id="pagePlaygroundContainer" spacing="14.0" HBox.hgrow="ALWAYS" VBox.vgrow="ALWAYS">
+                        <!-- Dynamically populated page canvas / empty prompt -->
+                    </VBox>
+                </HBox>
+            </VBox>
+
+            <!-- View 5: AI Quiz System (Built using BorderPane for Teacher Requirement #3) -->
+            <BorderPane fx:id="quizView" visible="false" managed="false"
+                        style="-fx-background-color: #f1eae0; -fx-padding: 20px; -fx-background-radius: 18px; -fx-border-color: #e5dcce; -fx-border-radius: 18px;">
+                
+                <!-- TOP: Header, navigation and action controls -->
+                <top>
+                    <HBox alignment="CENTER_LEFT" spacing="14.0" style="-fx-padding: 0 0 14px 0; -fx-border-color: #e5dcce; -fx-border-width: 0 0 1px 0;">
+                        <Button onAction="#handleBackFromQuiz" styleClass="btn-secondary-action" text="◀ Back to Main Menu" />
+                        <Region HBox.hgrow="ALWAYS" />
+                        <Button fx:id="quizApiKeyBtn" onAction="#handleOpenApiKeyDialog" styleClass="btn-secondary-action" text="⚙️ API Key" />
+                        <Button fx:id="quizResetBtn" onAction="#handleResetQuiz" styleClass="btn-secondary-action" text="🔄 New Quiz" />
+                    </HBox>
+                </top>
+
+                <!-- CENTER: Viewport hosting Setup, Active Questions, or Loading Spinner -->
+                <center>
+                    <StackPane fx:id="quizCenterStack" style="-fx-padding: 8px 0;">
+                        
+                        <!-- Screen 1: Quiz Configuration & Sources Setup -->
+                        <ScrollPane fx:id="quizSetupScroll" fitToWidth="true" fitToHeight="true"
+                                     style="-fx-background-color: transparent; -fx-background: transparent; -fx-border-color: transparent;">
+                            <VBox alignment="TOP_CENTER" spacing="18.0" style="-fx-padding: 10px 16px;">
+                                
+                                <!-- Card A: Upload Sources Section -->
+                                <VBox spacing="10.0" style="-fx-background-color: #fcf9f2; -fx-padding: 16px; -fx-background-radius: 12px; -fx-border-color: #e5dcce; -fx-border-radius: 12px;">
+                                    <Label text="📁 1. Source Material (Optional)" style="-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #1c2a18;" />
+                                    <Label text="Upload notes or select a page from your Revision Assistant notebooks to generate questions from." style="-fx-font-size: 12px; -fx-text-fill: #71816c;" />
+                                    
+                                    <HBox alignment="CENTER_LEFT" spacing="12.0">
+                                        <Button onAction="#handleUploadSourceFile" styleClass="btn-secondary-action" text="📎 Upload File (PDF, DOC, PPTX, Image, Code)" />
+                                        <Label text="or" style="-fx-font-size: 12px; -fx-text-fill: #94a3b8;" />
+                                        <ComboBox fx:id="quizNotebookPageSelect" promptText="📚 Select Notebook Page..." prefWidth="250.0" />
+                                    </HBox>
+
+                                    <!-- Chip showing active source -->
+                                    <HBox fx:id="sourceFileChip" alignment="CENTER_LEFT" spacing="8.0" visible="false" managed="false"
+                                          style="-fx-background-color: #d8e2d4; -fx-padding: 6px 12px; -fx-background-radius: 6px;">
+                                        <Label fx:id="sourceFileLabel" text="📄 notes.txt" style="-fx-font-size: 12px; -fx-text-fill: #2c3f26; -fx-font-weight: bold;" />
+                                        <Region HBox.hgrow="ALWAYS" />
+                                        <Button onAction="#handleRemoveSourceFile" style="-fx-background-color: transparent; -fx-text-fill: #2c3f26; -fx-font-weight: bold; -fx-cursor: hand;" text="✕ Clear" />
+                                    </HBox>
+                                </VBox>
+
+                                <!-- Card B: Customization Controls -->
+                                <VBox spacing="12.0" style="-fx-background-color: #fcf9f2; -fx-padding: 16px; -fx-background-radius: 12px; -fx-border-color: #e5dcce; -fx-border-radius: 12px;">
+                                    <Label text="⚙️ 2. Quiz Configuration" style="-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #1c2a18;" />
+                                    
+                                    <HBox alignment="CENTER_LEFT" spacing="20.0">
+                                        <VBox spacing="4.0">
+                                            <Label text="Number of Questions" style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #4b5c46;" />
+                                            <ComboBox fx:id="quizNumQuestionsCombo" prefWidth="120.0" />
+                                        </VBox>
+
+                                        <VBox spacing="4.0">
+                                            <Label text="Difficulty Level" style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #4b5c46;" />
+                                            <ComboBox fx:id="quizDifficultyCombo" prefWidth="130.0" />
+                                        </VBox>
+
+                                        <VBox spacing="4.0">
+                                            <Label text="Question Types" style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #4b5c46;" />
+                                            <ComboBox fx:id="quizTypeCombo" prefWidth="210.0" />
+                                        </VBox>
+                                    </HBox>
+                                </VBox>
+
+                                <!-- Card C: Custom Topic / Prompt -->
+                                <VBox spacing="8.0" style="-fx-background-color: #fcf9f2; -fx-padding: 16px; -fx-background-radius: 12px; -fx-border-color: #e5dcce; -fx-border-radius: 12px;">
+                                    <Label text="✍️ 3. Topic &amp; Special Focus" style="-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #1c2a18;" />
+                                    <Label text="Describe the subject or give specific instructions (e.g. 'Focus on graph algorithms and asymptotic notation')." style="-fx-font-size: 12px; -fx-text-fill: #71816c;" />
+                                    <TextArea fx:id="quizCustomPromptArea" prefRowCount="3" promptText="Enter topic or prompt..."
+                                              style="-fx-background-color: #ffffff; -fx-border-color: #dcd3c3; -fx-border-radius: 8px; -fx-background-radius: 8px;" />
+                                </VBox>
+
+                                <!-- Card D: Generate Quiz Button -->
+                                <HBox alignment="CENTER" style="-fx-padding: 6px 0;">
+                                    <Button fx:id="generateQuizBtn" onAction="#handleGenerateQuiz"
+                                            style="-fx-background-color: #445a3c; -fx-text-fill: #f0e8dc; -fx-font-weight: bold; -fx-font-size: 14px; -fx-padding: 10px 28px; -fx-background-radius: 10px; -fx-cursor: hand;" text="Generate quiz" />
+                                </HBox>
+
+                            </VBox>
+                        </ScrollPane>
+
+                        <!-- Screen 2: Active Questions Viewport -->
+                        <ScrollPane fx:id="quizActiveScroll" fitToWidth="true" fitToHeight="true" visible="false" managed="false"
+                                     style="-fx-background-color: transparent; -fx-background: transparent; -fx-border-color: transparent;">
+                            <VBox fx:id="quizQuestionsContainer" spacing="20.0" style="-fx-padding: 10px 16px;">
+                                <!-- Populated dynamically with MCQ 4-card grids and Short Answer text boxes -->
+                            </VBox>
+                        </ScrollPane>
+
+                        <!-- Screen 3: Asynchronous Loading Overlay -->
+                        <VBox fx:id="quizLoadingOverlay" alignment="CENTER" spacing="12.0" visible="false" managed="false"
+                              style="-fx-background-color: rgba(241, 234, 224, 0.94); -fx-background-radius: 18px; -fx-padding: 40px;">
+                            <ProgressIndicator fx:id="quizProgressIndicator" prefHeight="48.0" prefWidth="48.0" />
+                            <Label fx:id="quizLoadingLabel" text="AI is crafting your quiz..." style="-fx-font-size: 15px; -fx-font-weight: bold; -fx-text-fill: #1c2a18;" />
+                            <Label fx:id="quizLoadingSubLabel" text="Fetching questions and formulating choices..." style="-fx-font-size: 12px; -fx-text-fill: #71816c;" />
+                        </VBox>
+
+                    </StackPane>
+                </center>
+
+                <!-- BOTTOM: Progress & Submission Action Bar -->
+                <bottom>
+                    <HBox fx:id="quizBottomBar" alignment="CENTER_LEFT" spacing="14.0"
+                          style="-fx-padding: 12px 0 0 0; -fx-border-color: #e5dcce; -fx-border-width: 1px 0 0 0;">
+                        <Label fx:id="quizProgressLabel" text="" style="-fx-font-size: 12px; -fx-text-fill: #71816c;" />
+                        <Region HBox.hgrow="ALWAYS" />
+                        <Button fx:id="quizSubmitBtn" onAction="#handleSubmitQuiz" style="-fx-background-color: #445a3c; -fx-text-fill: #f0e8dc; -fx-font-weight: bold; -fx-font-size: 13px; -fx-padding: 8px 22px; -fx-background-radius: 10px; -fx-cursor: hand;" text="📤 Submit Quiz" visible="false" managed="false" />
+                    </HBox>
+                </bottom>
+
+            </BorderPane>
+
+            <!-- View 6: Academic Progress Tracker (Courses Gallery & Detail Workspace) -->
+            <VBox fx:id="progressView" spacing="16.0" visible="false" managed="false"
+                  style="-fx-background-color: #f1eae0; -fx-padding: 24px; -fx-background-radius: 18px; -fx-border-color: #e5dcce; -fx-border-radius: 18px;">
+                
+                <!-- Sub-Screen A: Course Cards Gallery (Landing Screen) -->
+                <VBox fx:id="progressCoursesGalleryPane" spacing="18.0" VBox.vgrow="ALWAYS">
+                    <HBox alignment="CENTER_LEFT" spacing="16.0">
+                        <VBox spacing="3.0">
+                            <Label text="📚 Academic Courses" style="-fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: #1c2a18;" />
+                            <Label text="Select a course to view syllabus checklist, marks, and AI exam forecast" style="-fx-font-size: 12px; -fx-text-fill: #71816c;" />
+                        </VBox>
+                        <Region HBox.hgrow="ALWAYS" />
+                        <Button fx:id="addCourseBtn" onAction="#handleAddNewCourse"
+                                style="-fx-background-color: #445a3c; -fx-text-fill: #f0e8dc; -fx-font-weight: bold; -fx-font-size: 12px; -fx-background-radius: 10px; -fx-padding: 8px 18px; -fx-cursor: hand;" text="+ Add Course" />
+                    </HBox>
+
+                    <ScrollPane fitToWidth="true" fitToHeight="true"
+                                style="-fx-background-color: transparent; -fx-background: transparent; -fx-border-color: transparent;" VBox.vgrow="ALWAYS">
+                        <FlowPane fx:id="coursesGrid" hgap="18.0" vgap="18.0" style="-fx-padding: 4px;">
+                            <!-- Populated dynamically in HelloController -->
+                        </FlowPane>
+                    </ScrollPane>
+                </VBox>
+
+                <!-- Sub-Screen B: Course Progress Detail View (Shown after clicking a course card) -->
+                <VBox fx:id="progressDetailPane" spacing="16.0" visible="false" managed="false" VBox.vgrow="ALWAYS">
+                    <!-- Detail Top Bar: Back Button, Title, Actions -->
+                    <HBox alignment="CENTER_LEFT" spacing="12.0" style="-fx-padding: 0 0 12px 0; -fx-border-color: #e5dcce; -fx-border-width: 0 0 1px 0;">
+                        <Button onAction="#handleBackToCoursesGallery" styleClass="btn-secondary-action" text="◀ Back to Courses" />
+                        <VBox spacing="2.0">
+                            <Label fx:id="progressCourseTitleHeader" text="Course Title" style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #1c2a18;" />
+                            <Label fx:id="progressCourseSubtitle" text="Syllabus tracking &amp; assessment performance" style="-fx-font-size: 11px; -fx-text-fill: #71816c;" />
+                        </VBox>
+                        <Region HBox.hgrow="ALWAYS" />
+                        <Button fx:id="uploadSyllabusBtn" onAction="#handleUploadSyllabus" styleClass="btn-secondary-action" text="📄 Syllabus ▾" />
+                        <Button fx:id="setTermExamBtn" onAction="#handleSetTermExamDate" styleClass="btn-secondary-action" text="📅 Set Term Exam Date" />
+                        <Button fx:id="addMarksBtn" onAction="#handleAddMarksDialog"
+                                style="-fx-background-color: #445a3c; -fx-text-fill: #f0e8dc; -fx-font-weight: bold; -fx-background-radius: 8px; -fx-padding: 7px 16px; -fx-cursor: hand;" text="➕ Add Marks" />
+                    </HBox>
+
+                    <!-- Split Area: Left Column (Syllabus Hierarchy) & Right Column (Marks, Chart, Forecast) -->
+                    <HBox spacing="20.0" VBox.vgrow="ALWAYS">
+                        
+                        <!-- Left Column: Syllabus Checklist -->
+                        <VBox spacing="12.0" HBox.hgrow="ALWAYS" prefWidth="540.0"
+                              style="-fx-background-color: #fcf9f2; -fx-padding: 16px; -fx-background-radius: 12px; -fx-border-color: #e5dcce; -fx-border-radius: 12px;">
+                            <HBox alignment="CENTER_LEFT" spacing="10.0">
+                                <Label text="📖 Syllabus Hierarchy &amp; Checklist" style="-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #1c2a18;" />
+                                <Region HBox.hgrow="ALWAYS" />
+                                <Label fx:id="syllabusProgressSummaryLabel" text="0/0 Topics (0%)" style="-fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: #445a3c;" />
+                            </HBox>
+                            
+                            <ProgressBar fx:id="syllabusProgressBar" progress="0.0" maxWidth="Infinity" style="-fx-accent: #445a3c;" prefHeight="10.0" />
+
+                            <ScrollPane fitToWidth="true" fitToHeight="true"
+                                        style="-fx-background-color: transparent; -fx-background: transparent; -fx-border-color: transparent;" VBox.vgrow="ALWAYS">
+                                <VBox fx:id="syllabusChaptersContainer" spacing="12.0">
+                                    <!-- Populated dynamically with chapter cards & topic checkboxes -->
+                                </VBox>
+                            </ScrollPane>
+                        </VBox>
+
+                        <!-- Right Column: Marks Summary, JavaFX Chart & AI Forecast -->
+                        <VBox spacing="14.0" prefWidth="380.0" minWidth="340.0">
+                            
+                            <!-- Card 1: Assessment Marks Summary -->
+                            <VBox spacing="8.0" style="-fx-background-color: #fcf9f2; -fx-padding: 14px; -fx-background-radius: 12px; -fx-border-color: #e5dcce; -fx-border-radius: 12px;">
+                                <HBox alignment="CENTER_LEFT" spacing="8.0">
+                                    <Label text="📝 Marks" style="-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #1c2a18;" />
+                                    <Region HBox.hgrow="ALWAYS" />
+                                    <Label fx:id="marksAverageLabel" text="Avg: 0%" style="-fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: #2c3f26; -fx-background-color: #d8e2d4; -fx-padding: 2px 7px; -fx-background-radius: 6px;" />
+                                </HBox>
+                                <VBox fx:id="marksListContainer" spacing="6.0" maxHeight="140.0">
+                                    <!-- Populated dynamically with CT/Lab chips -->
+                                </VBox>
+                            </VBox>
+
+                            <!-- Card 2: JavaFX Progress Chart (Teacher Requirement #3) -->
+                            <VBox alignment="CENTER" spacing="6.0" style="-fx-background-color: #fcf9f2; -fx-padding: 10px; -fx-background-radius: 12px; -fx-border-color: #e5dcce; -fx-border-radius: 12px;" VBox.vgrow="ALWAYS">
+                                <Label text="📊 Syllabus Coverage Chart" style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #4b5c46;" />
+                                <PieChart fx:id="syllabusPieChart" legendVisible="false" labelsVisible="true" prefHeight="170.0" maxHeight="190.0" />
+                            </VBox>
+
+                            <!-- Card 3: AI Term Exam Strategy Forecast -->
+                            <VBox spacing="8.0" style="-fx-background-color: #e8ede5; -fx-padding: 12px 14px; -fx-background-radius: 12px; -fx-border-color: #cdd8c9; -fx-border-radius: 12px;">
+                                <HBox alignment="CENTER_LEFT" spacing="6.0">
+                                    <Label text="🤖 Term exam Forecast" style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #2c3f26;" />
+                                    <Region HBox.hgrow="ALWAYS" />
+                                    <Label fx:id="examCountdownBadge" text="No Exam Set" style="-fx-font-size: 10px; -fx-font-weight: bold; -fx-background-color: #d8e2d4; -fx-text-fill: #2c3f26; -fx-padding: 2px 6px; -fx-background-radius: 4px;" />
+                                </HBox>
+                                <Label fx:id="examForecastText" wrapText="true" text="Set a Term Exam date to generate your personalized AI study pace forecast." style="-fx-font-size: 11px; -fx-text-fill: #4b5c46; -fx-line-spacing: 2px;" />
+                                <Button fx:id="examForecastToggleBtn" onAction="#handleToggleExamForecastSeeMore" styleClass="quiz-see-more-btn" text="See More ▾" visible="false" managed="false" />
+                            </VBox>
+                        </VBox>
+                    </HBox>
+                </VBox>
+            </VBox>
+        </StackPane>
+
+        <!-- Right Sidebar (Tasks & Deadlines, Collapsible with smooth animation, closed by default) -->
+        <VBox fx:id="rightSidebar" maxWidth="0.0" minWidth="0.0" prefWidth="0.0" spacing="12.0"
+              visible="false" managed="false"
+              style="-fx-background-color: #f0e8dc; -fx-background-radius: 16px; -fx-border-color: #e4d8c8; -fx-border-radius: 16px; -fx-padding: 16px;">
+            
+            <!-- Tasks Header: Title, Count Badge, Close Button -->
+            <HBox alignment="CENTER_LEFT" spacing="8.0" style="-fx-padding: 0 0 8px 0; -fx-border-color: #e6decb; -fx-border-width: 0 0 1px 0;">
+                <Label style="-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #1c2a18;" text="📋 Tasks &amp; Deadlines" />
+                <Label fx:id="taskCountBadge" style="-fx-background-color: #d8e2d4; -fx-text-fill: #2c3f26; -fx-font-size: 11px; -fx-font-weight: bold; -fx-background-radius: 10px; -fx-padding: 2px 7px;" text="0" />
+                <Region HBox.hgrow="ALWAYS" />
+                <Button onAction="#handleToggleRight" style="-fx-background-color: transparent; -fx-text-fill: #71816c; -fx-font-size: 13px; -fx-cursor: hand; -fx-padding: 2px 6px;" text="✕" />
+            </HBox>
+
+            <!-- Scrollable Tasks List -->
+            <ScrollPane fitToWidth="true" fitToHeight="true"
+                        style="-fx-background-color: transparent; -fx-background: transparent; -fx-border-color: transparent;" VBox.vgrow="ALWAYS">
+                <VBox fx:id="tasksContainer" spacing="10.0">
+                    <!-- Populated dynamically with live ticking countdown cards -->
+                </VBox>
+            </ScrollPane>
+        </VBox>
+
+    </HBox>
+
+</VBox>

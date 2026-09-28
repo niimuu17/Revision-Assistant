@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.PasswordField?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+
+<StackPane alignment="CENTER" stylesheets="@styles.css" styleClass="main-container"
+           style="-fx-background-color: #526749;"
+           xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+           fx:controller="com.example.revision_assistant.LoginController">
+
+    <!-- Centered Card Container for Full-Screen Mode -->
+    <HBox alignment="CENTER" maxHeight="540.0" maxWidth="800.0"
+          style="-fx-background-radius: 16px; -fx-effect: dropshadow(three-pass-box, rgba(20, 35, 15, 0.25), 24, 0, 0, 8); -fx-background-color: #fcf9f2;">
+
+        <!-- Left Brand Sidebar -->
+        <VBox alignment="CENTER" prefWidth="300.0" spacing="16.0"
+              style="-fx-background-color: #445a3c; -fx-background-radius: 16px 0 0 16px; -fx-padding: 30px;" HBox.hgrow="NEVER">
+            <Label style="-fx-text-fill: #f0e8dc; -fx-font-size: 26px; -fx-font-weight: bold;" text="Revision Assistant" />
+            <Label style="-fx-background-color: #d8e2d4; -fx-text-fill: #2c3f26; -fx-font-size: 11px; -fx-font-weight: bold; -fx-background-radius: 10px; -fx-padding: 4px 10px;" text="📚 SQLite Powered" />
+            <Label alignment="CENTER" style="-fx-text-fill: #d2ded0; -fx-font-size: 12px;"
+                   text="Organize your weekly classes,&#10;track deadlines, and succeed."
+                   textAlignment="CENTER" />
+        </VBox>
+
+        <!-- Right Content: Switchable Cards for Login and Sign Up -->
+        <StackPane HBox.hgrow="ALWAYS" style="-fx-background-radius: 0 16px 16px 0;">
+            <!-- Card 1: Login Form -->
+            <VBox fx:id="loginCard" alignment="CENTER_LEFT" spacing="12.0"
+                  style="-fx-background-color: #fcf9f2; -fx-background-radius: 0 16px 16px 0;">
+                <padding>
+                    <Insets bottom="30.0" left="40.0" right="40.0" top="30.0" />
+                </padding>
+
+                <Label style="-fx-text-fill: #1c2a18; -fx-font-size: 22px; -fx-font-weight: bold;" text="Welcome Back 👋" />
+                <Label style="-fx-text-fill: #71816c; -fx-font-size: 12px;" text="Sign in using your Username or Gmail address." />
+
+                <!-- Feedback Message -->
+                <Label fx:id="loginMessageLabel" wrapText="true" />
+
+                <VBox spacing="6.0">
+                    <Label style="-fx-text-fill: #4b5c46; -fx-font-size: 12px; -fx-font-weight: bold;" text="Username or Gmail" />
+                    <TextField fx:id="loginIdentifierField" promptText="e.g. john_doe or john@gmail.com" />
+                </VBox>
+
+                <VBox spacing="6.0">
+                    <Label style="-fx-text-fill: #4b5c46; -fx-font-size: 12px; -fx-font-weight: bold;" text="Password" />
+                    <PasswordField fx:id="loginPasswordField" promptText="Enter your password" />
+                </VBox>
+
+                <Button fx:id="loginButton" maxWidth="Infinity" onAction="#handleLogin"
+                        style="-fx-background-color: #445a3c; -fx-text-fill: #f0e8dc; -fx-font-weight: bold; -fx-font-size: 13px; -fx-background-radius: 8px; -fx-padding: 10px 18px; -fx-cursor: hand;" text="Log In" />
+
+                <HBox alignment="CENTER" spacing="6.0">
+                    <Label style="-fx-text-fill: #71816c; -fx-font-size: 12px;" text="Don't have an account?" />
+                    <Button onAction="#showSignUpCard"
+                            style="-fx-background-color: transparent; -fx-text-fill: #445a3c; -fx-font-weight: bold; -fx-font-size: 12px; -fx-cursor: hand;" text="Sign Up" />
+                </HBox>
+            </VBox>
+
+            <!-- Card 2: Sign Up Form -->
+            <VBox fx:id="signupCard" alignment="CENTER_LEFT" managed="false" spacing="8.0"
+                  visible="false" style="-fx-background-color: #fcf9f2; -fx-background-radius: 0 16px 16px 0;">
+                <padding>
+                    <Insets bottom="25.0" left="40.0" right="40.0" top="25.0" />
+                </padding>
+
+                <Label style="-fx-text-fill: #1c2a18; -fx-font-size: 22px; -fx-font-weight: bold;" text="Create Account 🎓" />
+                <Label style="-fx-text-fill: #71816c; -fx-font-size: 12px;" text="Register with your Gmail and set a strong password." />
+
+                <!-- Feedback Message -->
+                <Label fx:id="signupMessageLabel" wrapText="true" />
+
+                <VBox spacing="3.0">
+                    <Label style="-fx-text-fill: #4b5c46; -fx-font-size: 12px; -fx-font-weight: bold;" text="Gmail Address" />
+                    <TextField fx:id="signupEmailField" promptText="e.g. yourname@gmail.com" />
+                </VBox>
+
+                <VBox spacing="3.0">
+                    <Label style="-fx-text-fill: #4b5c46; -fx-font-size: 12px; -fx-font-weight: bold;" text="Username" />
+                    <TextField fx:id="signupUsernameField" promptText="Choose a username" />
+                </VBox>
+
+                <VBox spacing="3.0">
+                    <Label style="-fx-text-fill: #4b5c46; -fx-font-size: 12px; -fx-font-weight: bold;" text="Set Password" />
+                    <PasswordField fx:id="signupPasswordField" promptText="Min 8 chars (e.g. Study@2026)" />
+                    <Label style="-fx-text-fill: #71816c; -fx-font-size: 11px;" text="Must have at least 8 chars, 1 uppercase, 1 digit &amp; 1 symbol." />
+                </VBox>
+
+                <VBox spacing="3.0">
+                    <Label style="-fx-text-fill: #4b5c46; -fx-font-size: 12px; -fx-font-weight: bold;" text="Confirm Password" />
+                    <PasswordField fx:id="signupConfirmPasswordField" promptText="Re-enter your password" />
+                </VBox>
+
+                <Button fx:id="signupButton" maxWidth="Infinity" onAction="#handleSignUp"
+                        style="-fx-background-color: #445a3c; -fx-text-fill: #f0e8dc; -fx-font-weight: bold; -fx-font-size: 13px; -fx-background-radius: 8px; -fx-padding: 10px 18px; -fx-cursor: hand;" text="Sign Up" />
+
+                <HBox alignment="CENTER" spacing="6.0">
+                    <Label style="-fx-text-fill: #71816c; -fx-font-size: 12px;" text="Already have an account?" />
+                    <Button onAction="#showLoginCard"
+                            style="-fx-background-color: transparent; -fx-text-fill: #445a3c; -fx-font-weight: bold; -fx-font-size: 12px; -fx-cursor: hand;" text="Log In" />
+                </HBox>
+            </VBox>
+        </StackPane>
+    </HBox>
+</StackPane>
