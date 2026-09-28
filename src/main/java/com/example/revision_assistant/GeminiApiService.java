@@ -30,10 +30,10 @@ public class GeminiApiService {
 
     private static final String BASE_URL = "https://generativelanguage.googleapis.com/v1beta/models/";
     private static final String[] CANDIDATE_MODELS = {
-            "gemini-3.8-flash",
-            "gemini-3.6-flash",
-            "gemini-3.5-flash-lite",
-            "gemini-flash-lite-latest",
+            "gemini-1.5-flash",
+            "gemini-2.0-flash",
+            "gemini-1.5-flash-latest",
+            "gemini-1.5-pro",
             "gemini-flash-latest"
     };
 
@@ -509,7 +509,7 @@ public class GeminiApiService {
                 + "Guidelines:\n"
                 + "1. Number chapters sequentially starting from 1.\n"
                 + "2. Keep chapter titles and topic names concise, informative, and clean.\n"
-                + "3. Extract all distinct core concepts, lectures, or sections into individual topics.\n\n"
+                + "3. Extract all distinct core concepts, sections, or lectures into individual topics. Every chapter MUST have multiple topics.\n\n"
                 + "Syllabus Content:\n"
                 + (syllabusText.length() > 25000 ? syllabusText.substring(0, 25000) : syllabusText);
 
@@ -554,16 +554,52 @@ public class GeminiApiService {
                 + "Guidelines:\n"
                 + "1. Number chapters sequentially starting from 1.\n"
                 + "2. Keep chapter titles and topic names concise, informative, and clean.\n"
-                + "3. Extract all core concepts, sections, or topics found in the image.";
+                + "3. Extract all core concepts, sections, or topics found in the image. Every chapter MUST have at least 2 to 5 topics.";
 
-        byte[] imageBytes = Files.readAllBytes(imageFile.toPath());
+        byte[] rawBytes = Files.readAllBytes(imageFile.toPath());
         String mimeType = QuizSourceHelper.getImageMimeType(imageFile);
+        byte[] imageBytes = scaleImageBytesIfNeeded(rawBytes, mimeType);
 
         String jsonBody = buildGeminiImageRequestBody(prompt, imageBytes, mimeType);
         String rawResponse = sendGeminiRequest(apiKey, jsonBody);
         String responseContent = extractContentText(rawResponse);
 
         return parseSyllabusChaptersFromJson(responseContent);
+    }
+
+    private byte[] scaleImageBytesIfNeeded(byte[] original, String mimeType) {
+        if (original.length <= 2 * 1024 * 1024) {
+            return original;
+        }
+        try {
+            java.io.ByteArrayInputStream bais = new java.io.ByteArrayInputStream(original);
+            java.awt.image.BufferedImage img = javax.imageio.ImageIO.read(bais);
+            if (img == null) return original;
+
+            int maxDim = 1600;
+            int width = img.getWidth();
+            int height = img.getHeight();
+            if (width <= maxDim && height <= maxDim) {
+                return original;
+            }
+
+            double scale = Math.min((double) maxDim / width, (double) maxDim / height);
+            int newW = Math.max(1, (int) (width * scale));
+            int newH = Math.max(1, (int) (height * scale));
+
+            java.awt.image.BufferedImage resized = new java.awt.image.BufferedImage(newW, newH, java.awt.image.BufferedImage.TYPE_INT_RGB);
+            java.awt.Graphics2D g2d = resized.createGraphics();
+            g2d.setRenderingHint(java.awt.RenderingHints.KEY_INTERPOLATION, java.awt.RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+            g2d.drawImage(img, 0, 0, newW, newH, null);
+            g2d.dispose();
+
+            java.io.ByteArrayOutputStream baos = new java.io.ByteArrayOutputStream();
+            String fmt = mimeType.contains("png") ? "png" : "jpeg";
+            javax.imageio.ImageIO.write(resized, fmt, baos);
+            return baos.toByteArray();
+        } catch (Exception e) {
+            return original;
+        }
     }
 
     private String buildGeminiImageRequestBody(String promptText, byte[] imageBytes, String mimeType) throws IOException {
@@ -588,35 +624,79 @@ public class GeminiApiService {
         return objectMapper.writeValueAsString(root);
     }
 
-    private List<SyllabusChapter> parseSyllabusChaptersFromJson(String responseContent) throws IOException {
+    public List<SyllabusChapter> parseSyllabusChaptersFromJson(String responseContent) throws IOException {
         List<SyllabusChapter> chapters = new ArrayList<>();
+        if (responseContent == null || responseContent.trim().isEmpty()) {
+            return chapters;
+        }
+
         JsonNode root = objectMapper.readTree(responseContent);
-        JsonNode chapArray = root.path("chapters");
-        if (chapArray.isArray()) {
+
+        JsonNode chapArray = null;
+        if (root.isArray()) {
+            chapArray = root;
+        } else if (root.has("chapters") && root.get("chapters").isArray()) {
+            chapArray = root.get("chapters");
+        } else if (root.has("modules") && root.get("modules").isArray()) {
+            chapArray = root.get("modules");
+        } else if (root.has("units") && root.get("units").isArray()) {
+            chapArray = root.get("units");
+        } else if (root.has("syllabus") && root.get("syllabus").isArray()) {
+            chapArray = root.get("syllabus");
+        }
+
+        if (chapArray != null && chapArray.isArray()) {
             for (JsonNode chNode : chapArray) {
-                int num = chNode.path("chapterNumber").asInt(chapters.size() + 1);
-                String title = chNode.path("title").asText("Chapter " + num);
-                SyllabusChapter chapter = new SyllabusChapter(num, title);
+                int num = chapters.size() + 1;
+                if (chNode.has("chapterNumber")) num = chNode.get("chapterNumber").asInt(num);
+                else if (chNode.has("chapter_number")) num = chNode.get("chapter_number").asInt(num);
+                else if (chNode.has("number")) num = chNode.get("number").asInt(num);
+                else if (chNode.has("chapter")) num = chNode.get("chapter").asInt(num);
+
+                String title = "";
+                if (chNode.has("title")) title = chNode.get("title").asText("");
+                else if (chNode.has("name")) title = chNode.get("name").asText("");
+                else if (chNode.has("chapterTitle")) title = chNode.get("chapterTitle").asText("");
+                else if (chNode.has("chapter_name")) title = chNode.get("chapter_name").asText("");
+
+                if (title.trim().isEmpty()) {
+                    title = "Chapter " + num;
+                }
+                SyllabusChapter chapter = new SyllabusChapter(num, title.trim());
 
                 List<SyllabusTopic> topics = new ArrayList<>();
-                JsonNode topArray = chNode.path("topics");
-                if (topArray.isArray()) {
+                JsonNode topArray = null;
+                if (chNode.has("topics") && chNode.get("topics").isArray()) topArray = chNode.get("topics");
+                else if (chNode.has("subtopics") && chNode.get("subtopics").isArray()) topArray = chNode.get("subtopics");
+                else if (chNode.has("sections") && chNode.get("sections").isArray()) topArray = chNode.get("sections");
+                else if (chNode.has("lessons") && chNode.get("lessons").isArray()) topArray = chNode.get("lessons");
+                else if (chNode.has("items") && chNode.get("items").isArray()) topArray = chNode.get("items");
+
+                if (topArray != null && topArray.isArray()) {
                     for (JsonNode tNode : topArray) {
-                        String topTitle = tNode.asText("").trim();
-                        if (!topTitle.isEmpty()) {
+                        String topTitle = "";
+                        if (tNode.isTextual()) {
+                            topTitle = tNode.asText().trim();
+                        } else if (tNode.isObject()) {
+                            if (tNode.has("title")) topTitle = tNode.get("title").asText("");
+                            else if (tNode.has("name")) topTitle = tNode.get("name").asText("");
+                            else if (tNode.has("topic")) topTitle = tNode.get("topic").asText("");
+                            else if (tNode.has("text")) topTitle = tNode.get("text").asText("");
+                        }
+                        topTitle = topTitle.replaceAll("^[\\-*•–—+\\d.:\\s]+", "").trim();
+                        if (!topTitle.isEmpty() && topTitle.length() >= 2) {
                             topics.add(new SyllabusTopic(topTitle));
                         }
                     }
                 }
+
+                if (topics.isEmpty()) {
+                    topics.add(new SyllabusTopic("Overview & Core Concepts of " + chapter.getTitle()));
+                }
+
                 chapter.setTopics(topics);
                 chapters.add(chapter);
             }
-        }
-
-        if (chapters.isEmpty()) {
-            SyllabusChapter defaultChapter = new SyllabusChapter(1, "General Syllabus");
-            defaultChapter.getTopics().add(new SyllabusTopic("Core Syllabus Content"));
-            chapters.add(defaultChapter);
         }
 
         return chapters;

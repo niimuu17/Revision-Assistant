@@ -987,30 +987,98 @@ public class HelloController {
         if (file == null) return;
 
         if (syllabusProgressSummaryLabel != null) {
-            syllabusProgressSummaryLabel.setText("Extracting & parsing syllabus with AI...");
+            syllabusProgressSummaryLabel.setText("Extracting & parsing syllabus topics...");
+        }
+        if (uploadSyllabusBtn != null) {
+            uploadSyllabusBtn.setDisable(true);
         }
 
-        CompletableFuture<List<SyllabusChapter>> future;
-        if (QuizSourceHelper.isImageFile(file)) {
-            future = geminiApiService.parseSyllabusHierarchyFromImageAsync(file);
-        } else {
-            future = CompletableFuture.supplyAsync(() -> {
-                try {
-                    return QuizSourceHelper.readFileContent(file);
-                } catch (Exception e) {
-                    throw new RuntimeException("Failed to read file: " + e.getMessage(), e);
+        CompletableFuture<List<SyllabusChapter>> future = CompletableFuture.supplyAsync(() -> {
+            try {
+                if (QuizSourceHelper.isImageFile(file)) {
+                    try {
+                        List<SyllabusChapter> aiChapters = geminiApiService.parseSyllabusHierarchyFromImage(file);
+                        if (aiChapters != null && !aiChapters.isEmpty()) {
+                            return aiChapters;
+                        }
+                    } catch (Exception ex) {
+                        System.err.println("[Syllabus] Vision AI parsing failed: " + ex.getMessage());
+                    }
+                    return SyllabusLocalParser.parseText(file.getName().replaceFirst("[.][^.]+$", ""));
                 }
-            }).thenCompose(text -> geminiApiService.parseSyllabusHierarchyAsync(text));
-        }
 
-        future.thenAccept(chapters -> Platform.runLater(() -> {
-            DatabaseHelper.saveSyllabusChapters(currentSelectedCourse.getId(), chapters);
-            loadCourseSyllabusAndStats(currentSelectedCourse.getId());
-            loadTermExamAndForecast(currentSelectedCourse);
-            Alert alert = new Alert(Alert.AlertType.INFORMATION, "Successfully extracted " + chapters.size() + " chapters and topics for " + currentSelectedCourse.getCourseCode() + "!");
-            alert.showAndWait();
-        })).exceptionally(ex -> {
+                // Document / Text File path
+                String text = "";
+                try {
+                    text = QuizSourceHelper.readFileContent(file);
+                } catch (Exception ex) {
+                    System.err.println("[Syllabus] Failed to read file text: " + ex.getMessage());
+                }
+
+                // If PDF text was empty, check if it's a scanned PDF and attempt first page vision
+                if ((text == null || text.trim().length() < 30) && file.getName().toLowerCase().endsWith(".pdf")) {
+                    File pageImg = QuizSourceHelper.renderFirstPageOfPdfToImage(file);
+                    if (pageImg != null && pageImg.exists()) {
+                        try {
+                            List<SyllabusChapter> visionChapters = geminiApiService.parseSyllabusHierarchyFromImage(pageImg);
+                            if (visionChapters != null && !visionChapters.isEmpty()) {
+                                return visionChapters;
+                            }
+                        } catch (Exception ex) {
+                            System.err.println("[Syllabus] Scanned PDF vision parsing failed: " + ex.getMessage());
+                        }
+                    }
+                }
+
+                // Try Gemini API first if API key is present and text is available
+                String apiKey = ApiKeyManager.getApiKey();
+                if (apiKey != null && !apiKey.trim().isEmpty() && text != null && text.trim().length() >= 20) {
+                    try {
+                        List<SyllabusChapter> aiChapters = geminiApiService.parseSyllabusHierarchy(text);
+                        if (aiChapters != null && !aiChapters.isEmpty()) {
+                            int extractedTopicCount = 0;
+                            for (SyllabusChapter ch : aiChapters) {
+                                if (ch.getTopics() != null) extractedTopicCount += ch.getTopics().size();
+                            }
+                            if (extractedTopicCount > 0) {
+                                return aiChapters;
+                            }
+                        }
+                    } catch (Exception ex) {
+                        System.err.println("[Syllabus] Gemini API text parsing failed, using smart local parser: " + ex.getMessage());
+                    }
+                }
+
+                // Robust local rule-based parsing fallback
+                return SyllabusLocalParser.parseText(text != null && !text.trim().isEmpty() ? text : file.getName());
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                return SyllabusLocalParser.parseText(file.getName());
+            }
+        });
+
+        future.thenAccept(chapters -> {
+            final List<SyllabusChapter> finalChapters = (chapters == null || chapters.isEmpty())
+                    ? SyllabusLocalParser.parseText(file.getName()) : chapters;
             Platform.runLater(() -> {
+                if (uploadSyllabusBtn != null) uploadSyllabusBtn.setDisable(false);
+                DatabaseHelper.saveSyllabusChapters(currentSelectedCourse.getId(), finalChapters);
+                loadCourseSyllabusAndStats(currentSelectedCourse.getId());
+                loadTermExamAndForecast(currentSelectedCourse);
+
+                int topicCount = 0;
+                for (SyllabusChapter c : finalChapters) {
+                    if (c.getTopics() != null) topicCount += c.getTopics().size();
+                }
+
+                Alert alert = new Alert(Alert.AlertType.INFORMATION,
+                        "Successfully extracted " + finalChapters.size() + " chapters and " + topicCount + " topics for " + currentSelectedCourse.getCourseCode() + "!");
+                alert.setHeaderText("Syllabus Checklist Ready");
+                alert.showAndWait();
+            });
+        }).exceptionally(ex -> {
+            Platform.runLater(() -> {
+                if (uploadSyllabusBtn != null) uploadSyllabusBtn.setDisable(false);
                 loadCourseSyllabusAndStats(currentSelectedCourse.getId());
                 Alert alert = new Alert(Alert.AlertType.ERROR, "Syllabus Extraction Error: " + ex.getMessage());
                 alert.showAndWait();

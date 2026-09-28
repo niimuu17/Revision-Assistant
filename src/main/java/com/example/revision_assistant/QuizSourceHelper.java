@@ -23,8 +23,11 @@ public class QuizSourceHelper {
         if (name.endsWith(".pdf")) {
             try (org.apache.pdfbox.pdmodel.PDDocument document = org.apache.pdfbox.Loader.loadPDF(file)) {
                 org.apache.pdfbox.text.PDFTextStripper stripper = new org.apache.pdfbox.text.PDFTextStripper();
-                return stripper.getText(document);
-            }
+                String text = stripper.getText(document);
+                if (text != null && !text.trim().isEmpty()) {
+                    return text;
+                }
+            } catch (Exception ignored) {}
         }
         if (name.endsWith(".docx")) {
             try {
@@ -74,6 +77,24 @@ public class QuizSourceHelper {
         if (name.endsWith(".gif")) return "image/gif";
         if (name.endsWith(".bmp")) return "image/bmp";
         return "image/jpeg";
+    }
+
+    /**
+     * Renders the first page of a PDF document to a temporary PNG image file.
+     * Useful for scanned PDFs where text extraction yields 0 characters.
+     */
+    public static File renderFirstPageOfPdfToImage(File pdfFile) {
+        try (org.apache.pdfbox.pdmodel.PDDocument document = org.apache.pdfbox.Loader.loadPDF(pdfFile)) {
+            if (document.getNumberOfPages() > 0) {
+                org.apache.pdfbox.rendering.PDFRenderer renderer = new org.apache.pdfbox.rendering.PDFRenderer(document);
+                java.awt.image.BufferedImage img = renderer.renderImageWithDPI(0, 150);
+                File tempImg = File.createTempFile("pdf_page_", ".png");
+                tempImg.deleteOnExit();
+                javax.imageio.ImageIO.write(img, "png", tempImg);
+                return tempImg;
+            }
+        } catch (Exception ignored) {}
+        return null;
     }
 
     private static String extractPrintableTextRuns(byte[] bytes) {

@@ -223,4 +223,87 @@ public class ProgressServiceTest {
         assertNotNull(extracted);
         assertTrue(extracted.contains("Chapter 1: Advanced Java"), "Extracted DOCX text should contain Chapter 1: Advanced Java");
     }
+
+    @Test
+    public void testSyllabusLocalParser() {
+        String sampleSyllabus = "Course Syllabus: CS101\n" +
+                "Instructor: Dr. Smith\n" +
+                "Chapter 1: Object Oriented Programming\n" +
+                "- Classes and Objects\n" +
+                "- Encapsulation & Data Hiding\n" +
+                "- Polymorphic Behavior\n" +
+                "Chapter 2: Data Structures\n" +
+                "* Linked Lists\n" +
+                "* Binary Search Trees\n" +
+                "* Hash Tables";
+
+        List<SyllabusChapter> chapters = SyllabusLocalParser.parseText(sampleSyllabus);
+        assertNotNull(chapters);
+        assertEquals(2, chapters.size(), "Should detect 2 chapters");
+        assertEquals("Object Oriented Programming", chapters.get(0).getTitle());
+        assertEquals(3, chapters.get(0).getTopics().size(), "Chapter 1 should have 3 topics");
+        assertEquals("Classes and Objects", chapters.get(0).getTopics().get(0).getTitle());
+
+        assertEquals("Data Structures", chapters.get(1).getTitle());
+        assertEquals(3, chapters.get(1).getTopics().size(), "Chapter 2 should have 3 topics");
+    }
+
+    @Test
+    public void testSyllabusLocalParserUnstructuredFallback() {
+        String unstructured = "Introduction to Database Systems\n" +
+                "Relational Algebra\n" +
+                "SQL Queries\n" +
+                "Normalization and Normal Forms\n" +
+                "Indexing and B-Trees\n" +
+                "Transaction Processing";
+
+        List<SyllabusChapter> chapters = SyllabusLocalParser.parseText(unstructured);
+        assertNotNull(chapters);
+        assertFalse(chapters.isEmpty(), "Should partition unstructured text into chapters");
+        int totalTopics = chapters.stream().mapToInt(c -> c.getTopics().size()).sum();
+        assertTrue(totalTopics >= 4, "Should extract topics from unstructured lines");
+    }
+
+    @Test
+    public void testGeminiResilientJsonParsing() throws IOException {
+        GeminiApiService apiService = new GeminiApiService();
+
+        // 1. Test top-level array with topic objects
+        String jsonWithArrayAndObjects = "[\n" +
+                "  {\n" +
+                "    \"chapter_number\": 1,\n" +
+                "    \"title\": \"Operating System Concepts\",\n" +
+                "    \"subtopics\": [\n" +
+                "      {\"title\": \"Process Scheduling\"},\n" +
+                "      {\"name\": \"Virtual Memory Management\"}\n" +
+                "    ]\n" +
+                "  }\n" +
+                "]";
+
+        List<SyllabusChapter> chapters1 = apiService.parseSyllabusChaptersFromJson(jsonWithArrayAndObjects);
+        assertNotNull(chapters1);
+        assertEquals(1, chapters1.size());
+        assertEquals("Operating System Concepts", chapters1.get(0).getTitle());
+        assertEquals(2, chapters1.get(0).getTopics().size());
+        assertEquals("Process Scheduling", chapters1.get(0).getTopics().get(0).getTitle());
+        assertEquals("Virtual Memory Management", chapters1.get(0).getTopics().get(1).getTitle());
+
+        // 2. Test alternative modules key
+        String jsonModules = "{\n" +
+                "  \"modules\": [\n" +
+                "    {\n" +
+                "      \"number\": 1,\n" +
+                "      \"name\": \"Networking Fundamentals\",\n" +
+                "      \"topics\": [\"OSI Model\", \"TCP/IP Protocol\"]\n" +
+                "    }\n" +
+                "  ]\n" +
+                "}";
+
+        List<SyllabusChapter> chapters2 = apiService.parseSyllabusChaptersFromJson(jsonModules);
+        assertNotNull(chapters2);
+        assertEquals(1, chapters2.size());
+        assertEquals("Networking Fundamentals", chapters2.get(0).getTitle());
+        assertEquals(2, chapters2.get(0).getTopics().size());
+    }
 }
+
