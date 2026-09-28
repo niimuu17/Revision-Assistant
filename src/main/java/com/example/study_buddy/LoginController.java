@@ -85,20 +85,7 @@ public class LoginController {
         }
     }
 
-    /**
-     * Development bypass: logs in as user 'ikki' and enters dashboard.
-     */
-    @FXML
-    public void handleBypassLogin() {
-        if (loginIdentifierField != null) loginIdentifierField.setText("ikki");
-        if (loginPasswordField != null) loginPasswordField.setText("Ikkiis@kuet23");
-        User user = DatabaseHelper.getFirstOrCreateDevUser();
-        if (user != null) {
-            navigateToDashboard(user);
-        } else {
-            handleLogin();
-        }
-    }
+
 
     /**
      * Handles user sign-up with Gmail, username, and password.

@@ -146,6 +146,95 @@ public class GeminiApiService {
     }
 
     /**
+     * Call #1b: Generates an AI Quiz from an image (notes, diagram, slide, or textbook page).
+     */
+    public CompletableFuture<QuizSession> generateQuizFromImageAsync(
+            String topicPrompt,
+            File imageFile,
+            int numQuestions,
+            String difficulty,
+            String questionTypeMode) {
+
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                return generateQuizFromImage(topicPrompt, imageFile, numQuestions, difficulty, questionTypeMode);
+            } catch (Exception e) {
+                throw new RuntimeException(e.getMessage(), e);
+            }
+        });
+    }
+
+    public QuizSession generateQuizFromImage(
+            String topicPrompt,
+            File imageFile,
+            int numQuestions,
+            String difficulty,
+            String questionTypeMode) throws IOException, InterruptedException {
+
+        String apiKey = ApiKeyManager.getApiKey();
+        if (apiKey == null || apiKey.trim().isEmpty()) {
+            throw new IllegalStateException("Google Gemini API Key is missing. Please configure it in API Settings.");
+        }
+
+        int mcqCount;
+        int shortAnswerCount;
+        if ("MCQ Only".equalsIgnoreCase(questionTypeMode)) {
+            mcqCount = numQuestions;
+            shortAnswerCount = 0;
+        } else if ("Short Answer Only".equalsIgnoreCase(questionTypeMode)) {
+            mcqCount = 0;
+            shortAnswerCount = numQuestions;
+        } else {
+            shortAnswerCount = Math.max(1, numQuestions / 3);
+            mcqCount = numQuestions - shortAnswerCount;
+        }
+
+        StringBuilder promptBuilder = new StringBuilder();
+        promptBuilder.append("You are an expert academic tutor. Analyze the provided study image (notes, diagram, slide, or textbook page) and generate a high-quality study quiz based on its contents.\n");
+        promptBuilder.append("Difficulty Level: ").append(difficulty).append("\n");
+        promptBuilder.append("Total Questions: ").append(numQuestions).append(" (");
+        promptBuilder.append(mcqCount).append(" Multiple Choice, ").append(shortAnswerCount).append(" Short Answer).\n\n");
+
+        if (topicPrompt != null && !topicPrompt.trim().isEmpty()) {
+            promptBuilder.append("Additional Focus / Student Prompt: ").append(topicPrompt.trim()).append("\n\n");
+        }
+
+        promptBuilder.append("REQUIREMENTS:\n");
+        promptBuilder.append("1. For MCQ: Exactly 4 distinct options. Specify 'correctIndex' as an integer 0, 1, 2, or 3. Provide a complete educational 'explanation' without trailing ellipsis.\n");
+        promptBuilder.append("2. For SHORT_ANSWER: Provide a clear rubric detailing key points expected in a complete answer, and set maxScore to 5.\n");
+        promptBuilder.append("3. Return strictly valid JSON with this exact structure:\n");
+        promptBuilder.append("{\n");
+        promptBuilder.append("  \"title\": \"Quiz Title\",\n");
+        promptBuilder.append("  \"topic\": \"Summary Topic\",\n");
+        promptBuilder.append("  \"difficulty\": \"").append(difficulty).append("\",\n");
+        promptBuilder.append("  \"questions\": [\n");
+        promptBuilder.append("    {\n");
+        promptBuilder.append("      \"type\": \"MCQ\",\n");
+        promptBuilder.append("      \"question\": \"Question text?\",\n");
+        promptBuilder.append("      \"options\": [\"Option A\", \"Option B\", \"Option C\", \"Option D\"],\n");
+        promptBuilder.append("      \"correctIndex\": 0,\n");
+        promptBuilder.append("      \"explanation\": \"Why option A is correct...\"\n");
+        promptBuilder.append("    },\n");
+        promptBuilder.append("    {\n");
+        promptBuilder.append("      \"type\": \"SHORT_ANSWER\",\n");
+        promptBuilder.append("      \"question\": \"Question text?\",\n");
+        promptBuilder.append("      \"rubric\": \"Key concepts and points expected in the answer...\",\n");
+        promptBuilder.append("      \"maxScore\": 5\n");
+        promptBuilder.append("    }\n");
+        promptBuilder.append("  ]\n");
+        promptBuilder.append("}\n");
+
+        byte[] imageBytes = Files.readAllBytes(imageFile.toPath());
+        String mimeType = QuizSourceHelper.getImageMimeType(imageFile);
+
+        String requestJson = buildGeminiImageRequestBody(promptBuilder.toString(), imageBytes, mimeType);
+        String responseBody = sendGeminiRequest(apiKey, requestJson);
+
+        String jsonText = extractContentText(responseBody);
+        return parseQuizSession(jsonText, topicPrompt != null && !topicPrompt.isEmpty() ? topicPrompt : imageFile.getName(), difficulty);
+    }
+
+    /**
      * Call #2: Grades short answer responses using Gemini AI.
      * Evaluates conceptual correctness, accuracy, and completeness.
      */

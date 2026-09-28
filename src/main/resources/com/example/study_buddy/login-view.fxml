@@ -56,11 +56,6 @@
                 <Button fx:id="loginButton" maxWidth="Infinity" onAction="#handleLogin"
                         style="-fx-background-color: #445a3c; -fx-text-fill: #f0e8dc; -fx-font-weight: bold; -fx-font-size: 13px; -fx-background-radius: 8px; -fx-padding: 10px 18px; -fx-cursor: hand;" text="Log In" />
 
-                <!-- Dev Quick Bypass Button -->
-                <Button maxWidth="Infinity" onAction="#handleBypassLogin"
-                        style="-fx-background-color: #d8e2d4; -fx-text-fill: #2c3f26; -fx-font-weight: bold; -fx-font-size: 13px; -fx-background-radius: 8px; -fx-padding: 8px 16px; -fx-border-color: #bccbb6; -fx-border-radius: 8px; -fx-cursor: hand;"
-                        text="⚡ Enter (Bypass Login)" />
-
                 <HBox alignment="CENTER" spacing="6.0">
                     <Label style="-fx-text-fill: #71816c; -fx-font-size: 12px;" text="Don't have an account?" />
                     <Button onAction="#showSignUpCard"
@@ -104,11 +99,6 @@
 
                 <Button fx:id="signupButton" maxWidth="Infinity" onAction="#handleSignUp"
                         style="-fx-background-color: #445a3c; -fx-text-fill: #f0e8dc; -fx-font-weight: bold; -fx-font-size: 13px; -fx-background-radius: 8px; -fx-padding: 10px 18px; -fx-cursor: hand;" text="Sign Up" />
-
-                <!-- Dev Quick Bypass Button -->
-                <Button maxWidth="Infinity" onAction="#handleBypassLogin"
-                        style="-fx-background-color: #d8e2d4; -fx-text-fill: #2c3f26; -fx-font-weight: bold; -fx-font-size: 13px; -fx-background-radius: 8px; -fx-padding: 8px 16px; -fx-border-color: #bccbb6; -fx-border-radius: 8px; -fx-cursor: hand;"
-                        text="⚡ Enter (Bypass Login)" />
 
                 <HBox alignment="CENTER" spacing="6.0">
                     <Label style="-fx-text-fill: #71816c; -fx-font-size: 12px;" text="Already have an account?" />

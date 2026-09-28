@@ -88,8 +88,6 @@ public class HelloController {
 
     // AI Quiz Components (Built using BorderPane for Teacher Requirement #3)
     @FXML private BorderPane quizView;
-    @FXML private Label quizHeaderTitle;
-    @FXML private Label quizHeaderSubtitle;
     @FXML private Button quizApiKeyBtn;
     @FXML private Button quizResetBtn;
     @FXML private StackPane quizCenterStack;
@@ -1155,12 +1153,37 @@ public class HelloController {
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Choose Study Notes / Source File");
         fileChooser.getExtensionFilters().addAll(
-                new FileChooser.ExtensionFilter("Text & Code Files (*.txt, *.md, *.java, *.py, *.json)", "*.txt", "*.md", "*.java", "*.py", "*.json", "*.c", "*.cpp", "*.html", "*.css"),
+                new FileChooser.ExtensionFilter("All Supported Files (*.pdf, *.doc, *.docx, *.pptx, *.png, *.jpg, *.java, *.py, ...)",
+                        "*.pdf", "*.doc", "*.docx", "*.pptx", "*.ppt",
+                        "*.png", "*.jpg", "*.jpeg", "*.webp", "*.bmp", "*.gif",
+                        "*.txt", "*.md", "*.java", "*.py", "*.c", "*.cpp", "*.cs", "*.js", "*.ts", "*.html", "*.css", "*.json", "*.sql", "*.sh"),
+                new FileChooser.ExtensionFilter("PDF Documents (*.pdf)", "*.pdf"),
+                new FileChooser.ExtensionFilter("Word Documents (*.docx, *.doc)", "*.docx", "*.doc"),
+                new FileChooser.ExtensionFilter("PowerPoint Presentations (*.pptx, *.ppt)", "*.pptx", "*.ppt"),
+                new FileChooser.ExtensionFilter("Image Files (*.png, *.jpg, *.jpeg, *.webp)", "*.png", "*.jpg", "*.jpeg", "*.webp", "*.bmp", "*.gif"),
+                new FileChooser.ExtensionFilter("Code & Text Files (*.txt, *.md, *.java, *.py, ...)", "*.txt", "*.md", "*.java", "*.py", "*.c", "*.cpp", "*.js", "*.ts", "*.html", "*.css", "*.json", "*.sql"),
                 new FileChooser.ExtensionFilter("All Files (*.*)", "*.*")
         );
         File chosen = fileChooser.showOpenDialog(stage);
         if (chosen != null) {
             try {
+                if (QuizSourceHelper.isImageFile(chosen)) {
+                    this.uploadedQuizFile = chosen;
+                    this.uploadedQuizFileContent = "";
+                    if (sourceFileLabel != null) {
+                        long kb = Math.max(1, chosen.length() / 1024);
+                        sourceFileLabel.setText("🖼️ " + chosen.getName() + " (" + kb + " KB Image)");
+                    }
+                    if (sourceFileChip != null) {
+                        sourceFileChip.setVisible(true);
+                        sourceFileChip.setManaged(true);
+                    }
+                    if (quizNotebookPageSelect != null) {
+                        quizNotebookPageSelect.getSelectionModel().clearSelection();
+                    }
+                    return;
+                }
+
                 String content = QuizSourceHelper.readFileContent(chosen);
                 if (content.trim().isEmpty()) {
                     showError("Empty File", "The selected file contains no readable text.");
@@ -1208,7 +1231,8 @@ public class HelloController {
             if (!ApiKeyManager.hasApiKey()) return;
         }
 
-        // Determine source text
+        // Determine source text or image
+        boolean isImageSource = (uploadedQuizFile != null && QuizSourceHelper.isImageFile(uploadedQuizFile));
         String sourceText = "";
         if (uploadedQuizFile != null && !uploadedQuizFileContent.trim().isEmpty()) {
             sourceText = uploadedQuizFileContent;
@@ -1222,7 +1246,7 @@ public class HelloController {
 
         String prompt = (quizCustomPromptArea != null) ? quizCustomPromptArea.getText().trim() : "";
 
-        if (sourceText.isEmpty() && prompt.isEmpty()) {
+        if (!isImageSource && sourceText.isEmpty() && prompt.isEmpty()) {
             showError("Missing Information",
                     "Please provide a topic or select/upload source material to generate the quiz.");
             return;
@@ -1239,23 +1263,28 @@ public class HelloController {
             quizLoadingLabel.setText("AI is crafting your quiz...");
         }
         if (quizLoadingSubLabel != null) {
-            quizLoadingSubLabel.setText("Formulating questions and choices via Google Gemini...");
+            quizLoadingSubLabel.setText(isImageSource ? "Analyzing study image via Google Gemini..." : "Formulating questions and choices via Google Gemini...");
         }
         if (quizLoadingOverlay != null) {
             quizLoadingOverlay.setVisible(true);
             quizLoadingOverlay.setManaged(true);
         }
 
-        final String finalSourceText = sourceText;
-        geminiApiService.generateQuizAsync(prompt, finalSourceText, numQuestions, difficulty, typeMode)
-                .thenAccept(session -> Platform.runLater(() -> {
-                    if (quizLoadingOverlay != null) {
-                        quizLoadingOverlay.setVisible(false);
-                        quizLoadingOverlay.setManaged(false);
-                    }
-                    this.currentQuizSession = session;
-                    renderQuizQuestions(session);
-                }))
+        CompletableFuture<QuizSession> future;
+        if (isImageSource) {
+            future = geminiApiService.generateQuizFromImageAsync(prompt, uploadedQuizFile, numQuestions, difficulty, typeMode);
+        } else {
+            future = geminiApiService.generateQuizAsync(prompt, sourceText, numQuestions, difficulty, typeMode);
+        }
+
+        future.thenAccept(session -> Platform.runLater(() -> {
+            if (quizLoadingOverlay != null) {
+                quizLoadingOverlay.setVisible(false);
+                quizLoadingOverlay.setManaged(false);
+            }
+            this.currentQuizSession = session;
+            renderQuizQuestions(session);
+        }))
                 .exceptionally(ex -> {
                     Platform.runLater(() -> {
                         if (quizLoadingOverlay != null) {
@@ -1750,7 +1779,7 @@ public class HelloController {
             quizSubmitBtn.setManaged(false);
         }
         if (quizProgressLabel != null) {
-            quizProgressLabel.setText("Ready to create quiz");
+            quizProgressLabel.setText("");
         }
     }
 

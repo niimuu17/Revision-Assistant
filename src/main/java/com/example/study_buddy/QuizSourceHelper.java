@@ -32,7 +32,18 @@ public class QuizSourceHelper {
                 if (!docxText.trim().isEmpty()) return docxText;
             } catch (Exception ignored) {}
         }
-        if (name.endsWith(".pptx")) {
+        if (name.endsWith(".doc")) {
+            try {
+                String docxText = extractZipXmlText(file, n -> n.equalsIgnoreCase("word/document.xml"));
+                if (!docxText.trim().isEmpty()) return docxText;
+            } catch (Exception ignored) {}
+            try {
+                byte[] raw = Files.readAllBytes(file.toPath());
+                String extracted = extractPrintableTextRuns(raw);
+                if (!extracted.trim().isEmpty()) return extracted;
+            } catch (Exception ignored) {}
+        }
+        if (name.endsWith(".pptx") || name.endsWith(".ppt")) {
             try {
                 String pptxText = extractZipXmlText(file, n -> n.toLowerCase().startsWith("ppt/slides/slide") && n.toLowerCase().endsWith(".xml"));
                 if (!pptxText.trim().isEmpty()) return pptxText;
@@ -43,12 +54,13 @@ public class QuizSourceHelper {
     }
 
     /**
-     * Checks if the given file is an image (.png, .jpg, .jpeg, .webp).
+     * Checks if the given file is an image (.png, .jpg, .jpeg, .webp, .bmp, .gif).
      */
     public static boolean isImageFile(File file) {
         if (file == null) return false;
         String name = file.getName().toLowerCase();
-        return name.endsWith(".png") || name.endsWith(".jpg") || name.endsWith(".jpeg") || name.endsWith(".webp");
+        return name.endsWith(".png") || name.endsWith(".jpg") || name.endsWith(".jpeg")
+                || name.endsWith(".webp") || name.endsWith(".bmp") || name.endsWith(".gif");
     }
 
     /**
@@ -59,7 +71,29 @@ public class QuizSourceHelper {
         String name = file.getName().toLowerCase();
         if (name.endsWith(".png")) return "image/png";
         if (name.endsWith(".webp")) return "image/webp";
+        if (name.endsWith(".gif")) return "image/gif";
+        if (name.endsWith(".bmp")) return "image/bmp";
         return "image/jpeg";
+    }
+
+    private static String extractPrintableTextRuns(byte[] bytes) {
+        StringBuilder sb = new StringBuilder();
+        StringBuilder run = new StringBuilder();
+        for (byte b : bytes) {
+            char c = (char) (b & 0xFF);
+            if ((c >= 32 && c <= 126) || c == '\n' || c == '\t' || c == '\r') {
+                run.append(c);
+            } else {
+                if (run.length() >= 4) {
+                    sb.append(run).append(" ");
+                }
+                run.setLength(0);
+            }
+        }
+        if (run.length() >= 4) {
+            sb.append(run);
+        }
+        return sb.toString().replaceAll("\\s+", " ").trim();
     }
 
     /**
