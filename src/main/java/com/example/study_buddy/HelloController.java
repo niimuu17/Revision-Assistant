@@ -1656,16 +1656,12 @@ public class HelloController {
                     }
                 }
 
-                // AI Feedback Box
+                // Feedback Box
                 VBox fbBox = new VBox(6);
                 fbBox.setStyle("-fx-background-color: #f1eae0; -fx-padding: 10px 12px; -fx-background-radius: 8px; -fx-border-color: #d8e2d4; -fx-border-radius: 8px;");
 
                 HBox fbHeader = new HBox(8);
-                fbHeader.setAlignment(Pos.CENTER_LEFT);
-                Label fbIcon = new Label("🤖 AI Feedback:");
-                fbIcon.setStyle("-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #445a3c;");
-                Region sp = new Region();
-                HBox.setHgrow(sp, Priority.ALWAYS);
+                fbHeader.setAlignment(Pos.CENTER_RIGHT);
                 Label scorePill = new Label("Score: " + q.getAwardedScore() + " / " + q.getMaxScore() + " pts");
                 if (isUnsubmitted) {
                     scorePill.setStyle("-fx-background-color: #fee2e2; -fx-text-fill: #991b1b; -fx-font-weight: bold; -fx-background-radius: 10px; -fx-padding: 2px 8px; -fx-font-size: 11px;");
@@ -1674,7 +1670,7 @@ public class HelloController {
                 } else {
                     scorePill.setStyle("-fx-background-color: #fef3c7; -fx-text-fill: #92400e; -fx-font-weight: bold; -fx-background-radius: 10px; -fx-padding: 2px 8px; -fx-font-size: 11px;");
                 }
-                fbHeader.getChildren().addAll(fbIcon, sp, scorePill);
+                fbHeader.getChildren().add(scorePill);
 
                 Label fbText = new Label();
                 fbText.setWrapText(true);
